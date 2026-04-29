@@ -35,7 +35,9 @@ def register_view(request):
         return redirect('dashboard')
         
     if request.method == 'POST':
-        messages.success(request, 'Registrasi dummy berhasil. Silakan login.')
+        role = request.POST.get('role', 'member')
+        email = request.POST.get('email')
+        messages.success(request, f'Registrasi berhasil untuk {email} sebagai {role.title()}. Silakan login.')
         return redirect('login')
             
     return render(request, 'register.html')
