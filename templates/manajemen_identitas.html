@@ -1,0 +1,49 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 py-10 w-full relative z-10">
+    <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
+        <div>
+            <h1 class="text-3xl font-extrabold text-white tracking-widest uppercase mb-2">Identitas Perjalanan</h1>
+            <p class="text-slate-400 text-sm tracking-wider">Kelola dokumen paspor atau KTP Anda untuk keperluan reservasi</p>
+        </div>
+        <a href="{% url 'form_identitas' %}" class="bg-gradient-to-r from-electric/80 to-blue-600 hover:from-electric hover:to-blue-500 text-white font-bold py-2.5 px-6 rounded-xl shadow-lg shadow-electric/30 transition-all duration-300 flex items-center text-sm tracking-widest uppercase">
+            <i class="fa-solid fa-plus mr-2"></i> Tambah Identitas
+        </a>
+    </div>
+
+    <div class="bg-white/5 border border-white/10 rounded-2xl overflow-hidden backdrop-blur-md shadow-2xl">
+        <div class="overflow-x-auto">
+            <table class="w-full text-left text-sm text-slate-300">
+                <thead class="bg-white/5 border-b border-white/10 text-xs uppercase font-bold text-electric tracking-widest">
+                    <tr>
+                        <th class="px-6 py-4">Jenis Dokumen</th>
+                        <th class="px-6 py-4">Nomor Identitas</th>
+                        <th class="px-6 py-4">Negara Penerbit</th>
+                        <th class="px-6 py-4">Tanggal Terbit</th>
+                        <th class="px-6 py-4">Tanggal Habis</th>
+                        <th class="px-6 py-4 text-center">Aksi</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-white/5">
+                    <tr class="hover:bg-white/5 transition-colors">
+                        <td class="px-6 py-4 font-bold text-white tracking-wider uppercase">Paspor</td>
+                        <td class="px-6 py-4 font-mono text-electric">P-00123456</td>
+                        <td class="px-6 py-4">Indonesia (IDN)</td>
+                        <td class="px-6 py-4">01 Jan 2020</td>
+                        <td class="px-6 py-4">01 Jan 2030</td>
+                        <td class="px-6 py-4 text-center space-x-2">
+                            <a href="{% url 'form_identitas' %}" class="inline-block bg-white/10 hover:bg-electric hover:text-dsn text-white p-2 rounded-lg transition-all duration-300" title="Edit Identitas">
+                                <i class="fa-solid fa-pen-to-square"></i>
+                            </a>
+                            <button class="inline-block bg-white/10 hover:bg-rose-500 hover:text-white text-rose-400 p-2 rounded-lg transition-all duration-300" title="Hapus Identitas">
+                                <i class="fa-solid fa-trash-can"></i>
+                            </button>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

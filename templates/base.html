@@ -14,9 +14,9 @@
             theme: {
                 extend: {
                     colors: {
-                        dsn: '#000B1B', // Deep Space Navy
-                        electric: '#00E5FF', // Electric Blue
-                        lavender: '#B388FF', // Lavender
+                        dsn: '#000B1B',
+                        electric: '#00E5FF',
+                        lavender: '#B388FF',
                     },
                     fontFamily: {
                         sans: ['"Plus Jakarta Sans"', 'sans-serif'],
@@ -56,12 +56,12 @@
                         <a href="#" class="flex items-center text-sm font-medium text-slate-300 hover:text-electric hover:bg-white/5 rounded-lg px-3 py-2 transition-all duration-300 whitespace-nowrap"><i class="fa-solid fa-ranking-star text-lg mr-2 opacity-70"></i>Status</a>
                         <a href="#" class="flex items-center text-sm font-medium text-slate-300 hover:text-electric hover:bg-white/5 rounded-lg px-3 py-2 transition-all duration-300 whitespace-nowrap"><i class="fa-solid fa-gift text-lg mr-2 opacity-70"></i>Rewards</a>
                         <a href="#" class="flex items-center text-sm font-medium text-slate-300 hover:text-electric hover:bg-white/5 rounded-lg px-3 py-2 transition-all duration-300 whitespace-nowrap"><i class="fa-solid fa-plane-up text-lg mr-2 opacity-70"></i>Travel</a>
-                        <a href="#" class="flex items-center text-sm font-medium text-slate-300 hover:text-electric hover:bg-white/5 rounded-lg px-3 py-2 transition-all duration-300 whitespace-nowrap"><i class="fa-solid fa-user-gear text-lg mr-2 opacity-70"></i>Account</a>
+                        <a href="{% url 'manajemen_identitas' %}" class="flex items-center text-sm font-medium text-slate-300 hover:text-electric hover:bg-white/5 rounded-lg px-3 py-2 transition-all duration-300 whitespace-nowrap"><i class="fa-regular fa-id-card text-lg mr-2 opacity-70"></i>Identitas</a>
                         <a href="{% url 'logout' %}" class="flex items-center text-sm font-medium text-rose-400 hover:text-rose-300 hover:bg-rose-950/40 rounded-lg px-3 py-2 transition-all duration-300 whitespace-nowrap ml-2 border border-rose-900/50"><i class="fa-solid fa-arrow-right-from-bracket text-lg mr-2 opacity-70"></i>Logout</a>
 
                     {% elif request.session.role == 'staf' %}
                         <a href="{% url 'dashboard' %}" class="flex items-center text-sm font-medium text-slate-300 hover:text-electric hover:bg-white/5 rounded-lg px-3 py-2 transition-all duration-300 whitespace-nowrap bg-white/5 border border-white/10"><i class="fa-solid fa-border-all text-lg mr-2 opacity-70 text-electric"></i>Dashboard</a>
-                        <a href="#" class="flex items-center text-sm font-medium text-slate-300 hover:text-electric hover:bg-white/5 rounded-lg px-3 py-2 transition-all duration-300 whitespace-nowrap"><i class="fa-solid fa-users text-lg mr-2 opacity-70"></i>Member</a>
+                        <a href="{% url 'manajemen_member' %}" class="flex items-center text-sm font-medium text-slate-300 hover:text-electric hover:bg-white/5 rounded-lg px-3 py-2 transition-all duration-300 whitespace-nowrap"><i class="fa-solid fa-users text-lg mr-2 opacity-70"></i>Member</a>
                         <a href="#" class="flex items-center text-sm font-medium text-slate-300 hover:text-electric hover:bg-white/5 rounded-lg px-3 py-2 transition-all duration-300 whitespace-nowrap"><i class="fa-solid fa-file-circle-check text-lg mr-2 opacity-70"></i>Klaim</a>
                         <a href="#" class="flex items-center text-sm font-medium text-slate-300 hover:text-electric hover:bg-white/5 rounded-lg px-3 py-2 transition-all duration-300 whitespace-nowrap"><i class="fa-solid fa-gifts text-lg mr-2 opacity-70"></i>Hadiah</a>
                         <a href="#" class="flex items-center text-sm font-medium text-slate-300 hover:text-electric hover:bg-white/5 rounded-lg px-3 py-2 transition-all duration-300 whitespace-nowrap"><i class="fa-solid fa-handshake text-lg mr-2 opacity-70"></i>Mitra</a>
@@ -94,7 +94,6 @@
     <main class="flex-grow flex flex-col relative">
         {% block content %}{% endblock %}
     </main>
-
 
 </body>
 </html>
