@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AeroMiles | Premium Portal</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .nav-link { 
+            @apply flex items-center text-sm font-medium text-slate-300 hover:text-cyan-300 hover:bg-slate-800 rounded-lg px-3 py-2 transition-all duration-300 whitespace-nowrap; 
+        }
+        .nav-icon { 
+            @apply text-lg mr-2;
+        }
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-thumb { background: #475569; border-radius: 4px; }
+        ::-webkit-scrollbar-track { background: #0f172a; }
+    </style>
+</head>
+<body class="bg-slate-50 min-h-screen flex flex-col font-sans">
+
+    <nav class="bg-slate-900 text-white shadow-xl sticky top-0 z-50 border-b border-slate-800">
+        <div class="max-w-[1400px] mx-auto px-6 overflow-x-auto">
+            <div class="flex justify-between items-center h-20 min-w-max">
+                
+                <div class="flex items-center space-x-3 cursor-pointer mr-8">
+                    <div class="bg-gradient-to-br from-cyan-400 to-blue-500 p-2.5 rounded-xl shadow-lg shadow-cyan-500/20">
+                        <i class="fa-solid fa-plane-up text-slate-900 text-xl"></i>
+                    </div>
+                    <span class="font-extrabold text-2xl tracking-wide bg-clip-text text-transparent bg-gradient-to-r from-cyan-300 to-blue-400">AeroMiles</span>
+                </div>
+
+                <div class="flex items-center space-x-1.5">
+                    
+                    {% if request.session.role == 'member' %}
+                        <a href="{% url 'dashboard' %}" class="nav-link text-white bg-slate-800/50"><i class="fa-solid fa-border-all nav-icon text-cyan-400"></i>Dashboard</a>
+                        <a href="#" class="nav-link"><i class="fa-regular fa-id-card nav-icon"></i>Identitas</a>
+                        <a href="#" class="nav-link"><i class="fa-solid fa-file-signature nav-icon"></i>Klaim</a>
+                        <a href="#" class="nav-link"><i class="fa-solid fa-exchange-alt nav-icon"></i>Transfer</a>
+                        <a href="#" class="nav-link"><i class="fa-solid fa-gift nav-icon"></i>Redeem</a>
+                        <a href="#" class="nav-link"><i class="fa-solid fa-box-open nav-icon"></i>Packages</a>
+                        <a href="#" class="nav-link"><i class="fa-solid fa-ranking-star nav-icon"></i>Tier</a>
+                        <a href="#" class="nav-link"><i class="fa-solid fa-user-gear nav-icon"></i>Profil</a>
+                        <a href="{% url 'logout' %}" class="nav-link text-rose-400 hover:text-rose-300 hover:bg-rose-950/40 ml-2 border border-rose-900/50"><i class="fa-solid fa-arrow-right-from-bracket nav-icon"></i>Logout</a>
+
+                    {% elif request.session.role == 'staf' %}
+                        <a href="{% url 'dashboard' %}" class="nav-link text-white bg-slate-800/50"><i class="fa-solid fa-border-all nav-icon text-cyan-400"></i>Dashboard</a>
+                        <a href="#" class="nav-link"><i class="fa-solid fa-users nav-icon"></i>Member</a>
+                        <a href="#" class="nav-link"><i class="fa-solid fa-file-circle-check nav-icon"></i>Klaim</a>
+                        <a href="#" class="nav-link"><i class="fa-solid fa-gifts nav-icon"></i>Hadiah</a>
+                        <a href="#" class="nav-link"><i class="fa-solid fa-handshake nav-icon"></i>Mitra</a>
+                        <a href="#" class="nav-link"><i class="fa-solid fa-file-invoice-dollar nav-icon"></i>Transaksi</a>
+                        <a href="#" class="nav-link"><i class="fa-solid fa-user-gear nav-icon"></i>Profil</a>
+                        <a href="{% url 'logout' %}" class="nav-link text-rose-400 hover:text-rose-300 hover:bg-rose-950/40 ml-2 border border-rose-900/50"><i class="fa-solid fa-arrow-right-from-bracket nav-icon"></i>Logout</a>
+
+                    {% else %}
+                        <a href="{% url 'login' %}" class="nav-link text-white"><i class="fa-solid fa-right-to-bracket nav-icon"></i>Login</a>
+                        <a href="#" class="nav-link"><i class="fa-solid fa-user-plus nav-icon text-cyan-400"></i>Registrasi</a>
+                    {% endif %}
+
+                </div>
+            </div>
+        </div>
+        
+        {% if request.session.role %}
+        <div class="bg-slate-950 py-2 px-6 text-sm flex justify-end items-center border-t border-slate-800/50">
+            <span class="text-slate-400 mr-2 text-xs">Logged in as:</span>
+            <div class="flex items-center bg-slate-900 px-3 py-1 rounded-full border border-slate-700">
+                <div class="w-2 h-2 rounded-full bg-cyan-400 mr-2 shadow-[0_0_8px_rgba(34,211,238,0.8)] animate-pulse"></div>
+                <span class="font-semibold text-white text-xs">{{ request.session.name }}</span>
+                <span class="mx-2 text-slate-600">|</span>
+                <span class="text-cyan-400 uppercase tracking-widest text-[10px] font-bold">{{ request.session.role }}</span>
+            </div>
+        </div>
+        {% endif %}
+    </nav>
+
+    <main class="flex-grow flex flex-col relative">
+        {% block content %}{% endblock %}
+    </main>
+
+</body>
+</html>
