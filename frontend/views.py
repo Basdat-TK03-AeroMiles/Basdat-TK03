@@ -28,7 +28,6 @@ def register_view(request):
         return redirect('dashboard')
         
     if request.method == 'POST':
-        # Add basic success message to simulate registration for now
         role = request.POST.get('role', 'member')
         email = request.POST.get('email')
         messages.success(request, f'Registrasi berhasil untuk {email} sebagai {role.title()}. Silakan login.')
@@ -48,3 +47,39 @@ def dashboard_view(request):
         return redirect('login')
         
     return render(request, 'dashboard.html', {'role': role, 'name': name})
+
+
+def manajemen_member_view(request):
+    role = request.session.get('role')
+    name = request.session.get('name')
+    
+    if role != 'staf':
+        messages.error(request, 'Akses Ditolak: Halaman ini khusus untuk Staf.')
+        return redirect('dashboard')
+        
+    return render(request, 'manajemen_member.html', {'role': role, 'name': name})
+
+
+def manajemen_identitas_view(request):
+    role = request.session.get('role')
+    name = request.session.get('name')
+    
+    if role != 'member':
+        messages.error(request, 'Akses Ditolak: Halaman ini khusus untuk Member.')
+        return redirect('dashboard')
+        
+    return render(request, 'manajemen_identitas.html', {'role': role, 'name': name})
+
+
+def form_identitas_view(request):
+    if request.method == 'POST':
+        messages.success(request, 'Data identitas berhasil disimpan!')
+        return redirect('manajemen_identitas')
+    return render(request, 'form_identitas.html')
+
+
+def form_member_view(request):
+    if request.method == 'POST':
+        messages.success(request, 'Data member berhasil diperbarui!')
+        return redirect('manajemen_member')
+    return render(request, 'form_member.html')
