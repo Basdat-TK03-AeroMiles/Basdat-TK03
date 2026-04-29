@@ -1,0 +1,59 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 py-10 w-full relative z-10">
+    <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
+        <div>
+            <h1 class="text-3xl font-extrabold text-white tracking-widest uppercase mb-2">Manajemen Data Member</h1>
+            <p class="text-slate-400 text-sm tracking-wider">Kelola dan pantau data seluruh member terdaftar di AeroMiles</p>
+        </div>
+    </div>
+
+    <div class="bg-white/5 border border-white/10 rounded-2xl overflow-hidden backdrop-blur-md shadow-2xl">
+        <div class="overflow-x-auto">
+            <table class="w-full text-left text-sm text-slate-300">
+                <thead class="bg-white/5 border-b border-white/10 text-xs uppercase font-bold text-electric tracking-widest">
+                    <tr>
+                        <th class="px-6 py-4">Nomor Member</th>
+                        <th class="px-6 py-4">Nama Lengkap</th>
+                        <th class="px-6 py-4">Email</th>
+                        <th class="px-6 py-4">Tier Status</th>
+                        <th class="px-6 py-4">Total Miles</th>
+                        <th class="px-6 py-4 text-center">Aksi</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-white/5">
+                    <tr class="hover:bg-white/5 transition-colors">
+                        <td class="px-6 py-4 font-bold text-white tracking-wider">M0001</td>
+                        <td class="px-6 py-4">John William Doe</td>
+                        <td class="px-6 py-4">member@aeromiles.com</td>
+                        <td class="px-6 py-4">
+                            <span class="px-2.5 py-1 bg-electric/20 text-electric rounded-md border border-electric/30 text-xs font-bold uppercase tracking-widest">Blue</span>
+                        </td>
+                        <td class="px-6 py-4 font-mono text-electric">5,000</td>
+                        <td class="px-6 py-4 text-center">
+                            <a href="{% url 'form_member' %}" class="inline-block bg-white/10 hover:bg-electric hover:text-dsn text-white p-2 rounded-lg transition-all duration-300" title="Edit/Detail Member">
+                                <i class="fa-solid fa-pen-to-square"></i>
+                            </a>
+                        </td>
+                    </tr>
+                    <tr class="hover:bg-white/5 transition-colors">
+                        <td class="px-6 py-4 font-bold text-white tracking-wider">M0002</td>
+                        <td class="px-6 py-4">Aaron Nathanael</td>
+                        <td class="px-6 py-4">aaron@mail.com</td>
+                        <td class="px-6 py-4">
+                            <span class="px-2.5 py-1 bg-amber-500/20 text-amber-400 rounded-md border border-amber-500/30 text-xs font-bold uppercase tracking-widest">Gold</span>
+                        </td>
+                        <td class="px-6 py-4 font-mono text-amber-400">45,000</td>
+                        <td class="px-6 py-4 text-center">
+                            <a href="{% url 'form_member' %}" class="inline-block bg-white/10 hover:bg-electric hover:text-dsn text-white p-2 rounded-lg transition-all duration-300" title="Edit/Detail Member">
+                                <i class="fa-solid fa-pen-to-square"></i>
+                            </a>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
