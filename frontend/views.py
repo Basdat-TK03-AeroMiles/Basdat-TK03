@@ -13,12 +13,20 @@ def login_view(request):
         return redirect('dashboard')
 
     if request.method == 'POST':
-        # Bypass login: Langsung masuk sebagai staf atau member
-        # Ubah 'staf' menjadi 'member' jika ingin melihat dashboard member
-        request.session['role'] = 'staf'
-        request.session['name'] = 'Jonathan Hans Emanuelle'
-        request.session['email'] = 'jonathan.hans@ui.ac.id'
-        return redirect('dashboard')
+        email = request.POST.get('email')
+        password = request.POST.get('password')
+
+        if email == 'admin@aeromiles.com' and password == 'admin123':
+            request.session['role'] = 'staf'
+            request.session['name'] = 'Mr. Admin Aero'
+            return redirect('dashboard')
+        elif email == 'member@aeromiles.com' and password == 'member123':
+            request.session['role'] = 'member'
+            request.session['name'] = 'Mr. John William Doe'
+            return redirect('dashboard')
+        else:
+            messages.error(request, 'Email atau password salah!')
+            return redirect('login')
             
     return render(request, 'login.html')
 
@@ -27,13 +35,7 @@ def register_view(request):
         return redirect('dashboard')
         
     if request.method == 'POST':
-<<<<<<< HEAD
         messages.success(request, 'Registrasi dummy berhasil. Silakan login.')
-=======
-        role = request.POST.get('role', 'member')
-        email = request.POST.get('email')
-        messages.success(request, f'Registrasi berhasil untuk {email} sebagai {role.title()}. Silakan login.')
->>>>>>> tk03
         return redirect('login')
             
     return render(request, 'register.html')
@@ -43,8 +45,9 @@ def logout_view(request):
     return redirect('login')
 
 def dashboard_view(request):
-    email = request.session.get('email', 'jonathan.hans@ui.ac.id')
-    role = request.session.get('role', 'staf')
+    role = request.session.get('role')
+    name = request.session.get('name')
+    email = request.session.get('email')
     
     if not request.session.get('role'):
         return redirect('login')
@@ -79,7 +82,6 @@ def dashboard_view(request):
             {'jenis': 'Package', 'waktu': datetime.datetime(2026, 4, 25, 8, 0), 'miles': 10000},
         ]
         
-<<<<<<< HEAD
     elif role == 'staf':
         # Data dummy untuk tampilan dashboard Staf [cite: 163, 376]
         context['staf'] = {
@@ -163,7 +165,6 @@ def edit_hadiah(request, kode_hadiah):
 def hapus_hadiah(request, kode_hadiah):
     messages.success(request, 'Hadiah dummy berhasil dihapus.')
     return redirect('daftar_hadiah')
-=======
     return render(request, 'dashboard.html', {'role': role, 'name': name})
 
 
@@ -201,4 +202,3 @@ def form_member_view(request):
         messages.success(request, 'Data member berhasil diperbarui!')
         return redirect('manajemen_member')
     return render(request, 'form_member.html')
->>>>>>> tk03
