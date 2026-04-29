@@ -23,6 +23,19 @@ def login_view(request):
             
     return render(request, 'login.html')
 
+def register_view(request):
+    if request.session.get('role'):
+        return redirect('dashboard')
+        
+    if request.method == 'POST':
+        # Add basic success message to simulate registration for now
+        role = request.POST.get('role', 'member')
+        email = request.POST.get('email')
+        messages.success(request, f'Registrasi berhasil untuk {email} sebagai {role.title()}. Silakan login.')
+        return redirect('login')
+        
+    return render(request, 'register.html')
+
 def logout_view(request):
     request.session.flush()
     return redirect('login')

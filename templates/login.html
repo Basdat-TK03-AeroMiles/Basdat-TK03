@@ -1,60 +1,82 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<div class="flex-grow flex items-center justify-center p-6 bg-slate-50 relative overflow-hidden">
-    
-    <div class="absolute top-[-10%] left-[-5%] w-[500px] h-[500px] bg-cyan-400 rounded-full mix-blend-multiply filter blur-[128px] opacity-10"></div>
-    <div class="absolute bottom-[-10%] right-[-5%] w-[500px] h-[500px] bg-blue-600 rounded-full mix-blend-multiply filter blur-[128px] opacity-10"></div>
+<div class="flex-grow flex items-center justify-center p-6 bg-dsn relative overflow-hidden">
 
-    <div class="bg-white rounded-3xl shadow-2xl p-10 w-full max-w-md border border-slate-100 relative z-10">
-        
-        <div class="text-center mb-10">
-            <div class="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-slate-900 text-cyan-400 mb-5 shadow-lg shadow-slate-900/20 transform transition hover:scale-105">
-                <i class="fa-solid fa-plane-arrival text-3xl"></i>
+    <div
+        class="absolute top-[-10%] left-[-5%] w-[500px] h-[500px] bg-electric rounded-full filter blur-[120px] opacity-10 mix-blend-screen pointer-events-none">
+    </div>
+    <div
+        class="absolute bottom-[-10%] right-[-5%] w-[500px] h-[500px] bg-lavender rounded-full filter blur-[120px] opacity-10 mix-blend-screen pointer-events-none">
+    </div>
+
+    <div
+        class="bg-dsn/60 backdrop-blur-xl rounded-3xl shadow-2xl p-10 w-full max-w-md border border-white/10 relative z-10">
+
+        <div class="text-center mb-10 relative">
+            <!-- Decorative Vector Element -->
+            <div class="absolute -top-6 -left-6 w-12 h-12 border-t-2 border-l-2 border-electric/30 rounded-tl-xl"></div>
+            <div class="absolute -bottom-6 -right-6 w-12 h-12 border-b-2 border-r-2 border-lavender/30 rounded-br-xl">
             </div>
-            <h1 class="text-3xl font-extrabold text-slate-800 tracking-tight">Welcome Back</h1>
-            <p class="text-slate-500 text-sm mt-2">Sign in to your AeroMiles portal</p>
+
+            <div
+                class="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-white/5 text-electric mb-5 border border-electric/20 shadow-[0_0_15px_rgba(0,229,255,0.15)] transform transition hover:scale-105">
+                <i class="fa-solid fa-satellite-dish text-3xl"></i>
+            </div>
+            <h1 class="text-3xl font-extrabold text-white tracking-widest uppercase">Login Akun</h1>
+            <p class="text-slate-400 text-sm mt-3 tracking-wider">AeroMiles</p>
         </div>
 
         {% if messages %}
-            {% for message in messages %}
-                <div class="bg-rose-50 text-rose-600 p-4 rounded-xl text-sm mb-6 border border-rose-100 flex items-center shadow-sm">
-                    <i class="fa-solid fa-circle-exclamation mr-3 text-lg"></i>{{ message }}
-                </div>
-            {% endfor %}
+        {% for message in messages %}
+        <div
+            class="bg-rose-950/50 text-rose-400 p-4 rounded-xl text-sm mb-6 border border-rose-900/50 flex items-center shadow-sm backdrop-blur-md">
+            <i class="fa-solid fa-triangle-exclamation mr-3 text-lg"></i>{{ message }}
+        </div>
+        {% endfor %}
         {% endif %}
 
         <form method="POST" action="{% url 'login' %}">
             {% csrf_token %}
-            <div class="space-y-5">
+            <div class="space-y-6">
                 <div>
-                    <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">Email Address</label>
-                    <div class="relative">
+                    <label class="block text-xs font-bold text-slate-300 uppercase tracking-widest mb-2">Email <span class="text-rose-500">*</span></label>
+                    <div class="relative group">
                         <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                            <i class="fa-regular fa-envelope text-slate-400"></i>
+                            <i
+                                class="fa-solid fa-user-astronaut text-electric/70 group-focus-within:text-electric transition-colors"></i>
                         </div>
-                        <input type="email" name="email" required class="w-full pl-11 pr-4 py-3.5 border border-slate-200 rounded-xl focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 outline-none transition-all bg-slate-50 hover:bg-white text-sm" placeholder="email@aeromiles.com">
+                        <input type="email" name="email" required
+                            class="w-full pl-11 pr-4 py-3.5 border border-white/10 rounded-xl focus:ring-1 focus:ring-electric focus:border-electric outline-none transition-all bg-white/5 hover:bg-white/10 text-sm text-white backdrop-blur-md"
+                            placeholder="user@email.com">
                     </div>
                 </div>
                 <div>
-                    <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">Password</label>
-                    <div class="relative">
+                    <label
+                        class="block text-xs font-bold text-slate-300 uppercase tracking-widest mb-2">Password <span class="text-rose-500">*</span></label>
+                    <div class="relative group">
                         <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                            <i class="fa-solid fa-lock text-slate-400"></i>
+                            <i
+                                class="fa-solid fa-fingerprint text-electric/70 group-focus-within:text-electric transition-colors"></i>
                         </div>
-                        <input type="password" name="password" required class="w-full pl-11 pr-4 py-3.5 border border-slate-200 rounded-xl focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 outline-none transition-all bg-slate-50 hover:bg-white text-sm" placeholder="••••••••">
+                        <input type="password" name="password" required
+                            class="w-full pl-11 pr-4 py-3.5 border border-white/10 rounded-xl focus:ring-1 focus:ring-electric focus:border-electric outline-none transition-all bg-white/5 hover:bg-white/10 text-sm text-white backdrop-blur-md"
+                            placeholder="••••••••">
                     </div>
                 </div>
-                
-                <button type="submit" class="w-full bg-slate-900 hover:bg-black text-white font-bold py-4 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 mt-8 flex justify-center items-center group">
-                    Secure Login 
-                    <i class="fa-solid fa-arrow-right ml-2 group-hover:translate-x-1 transition-transform"></i>
+
+                <button type="submit"
+                    class="w-full bg-gradient-to-r from-electric/80 to-blue-600 hover:from-electric hover:to-blue-500 text-white font-bold py-4 rounded-xl shadow-lg shadow-electric/30 transition-all duration-300 flex justify-center items-center mt-8">
+                    <span class="tracking-widest uppercase text-sm">Login</span>
+                    <i class="fa-solid fa-arrow-right-to-bracket ml-3"></i>
                 </button>
             </div>
         </form>
 
-        <p class="text-center text-sm text-slate-500 mt-8">
-            New to AeroMiles? <a href="#" class="text-cyan-600 font-bold hover:text-cyan-700 hover:underline transition-colors">Register here</a>
+        <p class="text-center text-sm text-slate-400 mt-8 tracking-wider">
+            Belum memiliki akun? <a href="{% url 'register' %}"
+                class="text-electric font-bold hover:text-white transition-colors border-b border-electric/30 hover:border-white pb-0.5">Registrasi
+                di sini</a>
         </p>
     </div>
 </div>

@@ -1,0 +1,262 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="flex-grow flex items-center justify-center p-4 lg:p-10 bg-dsn relative overflow-hidden">
+
+    <!-- Abstract Backgrounds -->
+    <div
+        class="absolute top-[-10%] left-[-5%] w-[500px] h-[500px] bg-electric rounded-full filter blur-[120px] opacity-10 mix-blend-screen pointer-events-none">
+    </div>
+    <div
+        class="absolute bottom-[-10%] right-[-5%] w-[500px] h-[500px] bg-lavender rounded-full filter blur-[120px] opacity-10 mix-blend-screen pointer-events-none">
+    </div>
+
+    <div
+        class="bg-dsn/60 backdrop-blur-xl rounded-[2rem] shadow-2xl p-8 lg:p-12 w-full max-w-3xl border border-white/10 relative z-10">
+
+        <div class="text-center mb-10 relative">
+            <!-- Decorative Vector Element -->
+            <div class="absolute -top-6 -left-6 w-12 h-12 border-t-2 border-l-2 border-electric/30 rounded-tl-xl"></div>
+            <div class="absolute -bottom-6 -right-6 w-12 h-12 border-b-2 border-r-2 border-lavender/30 rounded-br-xl">
+            </div>
+
+            <div
+                class="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-white/5 text-electric mb-5 border border-electric/20 shadow-[0_0_15px_rgba(0,229,255,0.15)] transform transition hover:scale-105">
+                <i class="fa-solid fa-user-plus text-3xl"></i>
+            </div>
+            <h1 class="text-3xl font-extrabold text-white tracking-widest uppercase">Registrasi Akun</h1>
+            <p class="text-slate-400 text-sm mt-3 tracking-wider">Pilih peran Anda dan lengkapi data diri di bawah</p>
+        </div>
+
+        {% if messages %}
+        {% for message in messages %}
+        <div
+            class="bg-rose-950/50 text-rose-400 p-4 rounded-xl text-sm mb-8 border border-rose-900/50 flex items-center shadow-sm backdrop-blur-md">
+            <i class="fa-solid fa-triangle-exclamation mr-3 text-lg"></i>{{ message }}
+        </div>
+        {% endfor %}
+        {% endif %}
+
+        <!-- Role Toggle -->
+        <div class="flex justify-center mb-10">
+            <div class="bg-white/5 p-1.5 rounded-xl border border-white/10 flex relative w-full sm:w-72">
+                <div id="role-slider"
+                    class="absolute top-1.5 left-1.5 w-[calc(50%-6px)] h-[calc(100%-12px)] bg-electric/20 border border-electric/40 rounded-lg shadow-[0_0_15px_rgba(0,229,255,0.2)] transition-transform duration-300 ease-out">
+                </div>
+                <button type="button" id="btn-member"
+                    class="relative z-10 flex-1 py-2.5 text-sm font-bold tracking-widest uppercase rounded-lg transition-colors text-electric text-center"
+                    onclick="setRole('member')">Member</button>
+                <button type="button" id="btn-staf"
+                    class="relative z-10 flex-1 py-2.5 text-sm font-bold tracking-widest uppercase rounded-lg transition-colors text-slate-500 hover:text-slate-300 text-center"
+                    onclick="setRole('staf')">Staf</button>
+            </div>
+        </div>
+
+        <form method="POST" action="{% url 'register' %}">
+            {% csrf_token %}
+            <input type="hidden" name="role" id="role-input" value="member">
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+                <!-- Email -->
+                <div class="md:col-span-2">
+                    <label class="block text-xs font-bold text-slate-300 uppercase tracking-widest mb-2">Email <span
+                            class="text-rose-500">*</span></label>
+                    <div class="relative group">
+                        <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none"><i
+                                class="fa-solid fa-envelope text-electric/70 group-focus-within:text-electric transition-colors"></i>
+                        </div>
+                        <input type="email" name="email" required
+                            class="w-full pl-11 pr-4 py-3.5 border border-white/10 rounded-xl focus:ring-1 focus:ring-electric focus:border-electric outline-none transition-all bg-white/5 hover:bg-white/10 text-sm text-white backdrop-blur-md"
+                            placeholder="email@aeromiles.com">
+                    </div>
+                </div>
+
+                <!-- Password -->
+                <div>
+                    <label class="block text-xs font-bold text-slate-300 uppercase tracking-widest mb-2">Password <span
+                            class="text-rose-500">*</span></label>
+                    <div class="relative group">
+                        <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none"><i
+                                class="fa-solid fa-lock text-electric/70 group-focus-within:text-electric transition-colors"></i>
+                        </div>
+                        <input type="password" name="password" required
+                            class="w-full pl-11 pr-4 py-3.5 border border-white/10 rounded-xl focus:ring-1 focus:ring-electric focus:border-electric outline-none transition-all bg-white/5 hover:bg-white/10 text-sm text-white backdrop-blur-md"
+                            placeholder="••••••••">
+                    </div>
+                </div>
+
+                <!-- Konfirmasi Password -->
+                <div>
+                    <label class="block text-xs font-bold text-slate-300 uppercase tracking-widest mb-2">Konfirmasi
+                        Password <span class="text-rose-500">*</span></label>
+                    <div class="relative group">
+                        <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none"><i
+                                class="fa-solid fa-lock text-electric/70 group-focus-within:text-electric transition-colors"></i>
+                        </div>
+                        <input type="password" name="confirm_password" required
+                            class="w-full pl-11 pr-4 py-3.5 border border-white/10 rounded-xl focus:ring-1 focus:ring-electric focus:border-electric outline-none transition-all bg-white/5 hover:bg-white/10 text-sm text-white backdrop-blur-md"
+                            placeholder="••••••••">
+                    </div>
+                </div>
+
+                <!-- Salutation -->
+                <div>
+                    <label class="block text-xs font-bold text-slate-300 uppercase tracking-widest mb-2">Gelar /
+                        Salutation <span class="text-rose-500">*</span></label>
+                    <div class="relative group">
+                        <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none"><i
+                                class="fa-solid fa-user-tag text-electric/70 group-focus-within:text-electric transition-colors"></i>
+                        </div>
+                        <select name="salutation" required
+                            class="w-full pl-11 pr-10 py-3.5 border border-white/10 rounded-xl focus:ring-1 focus:ring-electric focus:border-electric outline-none transition-all bg-white/5 hover:bg-white/10 text-sm appearance-none text-white backdrop-blur-md">
+                            <option value="" disabled selected>Pilih Gelar...</option>
+                            <option value="Mr.">Mr.</option>
+                            <option value="Mrs.">Mrs.</option>
+                            <option value="Ms.">Ms.</option>
+                            <option value="Dr.">Dr.</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Tanggal Lahir -->
+                <div>
+                    <label class="block text-xs font-bold text-slate-300 uppercase tracking-widest mb-2">Tanggal Lahir
+                        <span class="text-rose-500">*</span></label>
+                    <div class="relative group">
+                        <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none"><i
+                                class="fa-regular fa-calendar-days text-electric/70 group-focus-within:text-electric transition-colors"></i>
+                        </div>
+                        <input type="date" name="tanggal_lahir" required
+                            class="w-full pl-11 pr-4 py-3.5 border border-white/10 rounded-xl focus:ring-1 focus:ring-electric focus:border-electric outline-none transition-all bg-white/5 hover:bg-white/10 text-sm text-slate-300 backdrop-blur-md"
+                            style="color-scheme: dark;">
+                    </div>
+                </div>
+
+                <!-- Nama Depan-Tengah -->
+                <div>
+                    <label class="block text-xs font-bold text-slate-300 uppercase tracking-widest mb-2">Nama Depan /
+                        Tengah <span class="text-rose-500">*</span></label>
+                    <div class="relative group">
+                        <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none"><i
+                                class="fa-solid fa-id-badge text-electric/70 group-focus-within:text-electric transition-colors"></i>
+                        </div>
+                        <input type="text" name="first_mid_name" required
+                            class="w-full pl-11 pr-4 py-3.5 border border-white/10 rounded-xl focus:ring-1 focus:ring-electric focus:border-electric outline-none transition-all bg-white/5 hover:bg-white/10 text-sm text-white backdrop-blur-md"
+                            placeholder="Contoh: Aaron Nathanael">
+                    </div>
+                </div>
+
+                <!-- Nama Belakang -->
+                <div>
+                    <label class="block text-xs font-bold text-slate-300 uppercase tracking-widest mb-2">Nama Belakang
+                        <span class="text-rose-500">*</span></label>
+                    <div class="relative group">
+                        <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none"><i
+                                class="fa-solid fa-id-badge text-electric/70 group-focus-within:text-electric transition-colors"></i>
+                        </div>
+                        <input type="text" name="last_name" required
+                            class="w-full pl-11 pr-4 py-3.5 border border-white/10 rounded-xl focus:ring-1 focus:ring-electric focus:border-electric outline-none transition-all bg-white/5 hover:bg-white/10 text-sm text-white backdrop-blur-md"
+                            placeholder="Contoh: Suhaendi">
+                    </div>
+                </div>
+
+                <!-- Country Code & Nomor HP -->
+                <div class="grid grid-cols-3 gap-3 md:col-span-2">
+                    <div class="col-span-1">
+                        <label class="block text-xs font-bold text-slate-300 uppercase tracking-widest mb-2">Kode Negara
+                            <span class="text-rose-500">*</span></label>
+                        <input type="text" name="country_code" required
+                            class="w-full px-3 py-3.5 border border-white/10 rounded-xl focus:ring-1 focus:ring-electric focus:border-electric outline-none transition-all bg-white/5 hover:bg-white/10 text-sm text-white backdrop-blur-md"
+                            placeholder="+62">
+                    </div>
+                    <div class="col-span-2">
+                        <label class="block text-xs font-bold text-slate-300 uppercase tracking-widest mb-2">Nomor
+                            Telepon <span class="text-rose-500">*</span></label>
+                        <input type="tel" name="mobile_number" required
+                            class="w-full px-4 py-3.5 border border-white/10 rounded-xl focus:ring-1 focus:ring-electric focus:border-electric outline-none transition-all bg-white/5 hover:bg-white/10 text-sm text-white backdrop-blur-md"
+                            placeholder="81234567890">
+                    </div>
+                </div>
+
+                <!-- Kewarganegaraan -->
+                <div class="md:col-span-2">
+                    <label class="block text-xs font-bold text-slate-300 uppercase tracking-widest mb-2">Kewarganegaraan
+                        <span class="text-rose-500">*</span></label>
+                    <div class="relative group">
+                        <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none"><i
+                                class="fa-solid fa-globe text-electric/70 group-focus-within:text-electric transition-colors"></i>
+                        </div>
+                        <input type="text" name="kewarganegaraan" required
+                            class="w-full pl-11 pr-4 py-3.5 border border-white/10 rounded-xl focus:ring-1 focus:ring-electric focus:border-electric outline-none transition-all bg-white/5 hover:bg-white/10 text-sm text-white backdrop-blur-md"
+                            placeholder="Indonesia">
+                    </div>
+                </div>
+
+                <!-- Kode Maskapai (Staf Only) -->
+                <div id="staf-fields" class="md:col-span-2 hidden">
+                    <label class="block text-xs font-bold text-electric uppercase tracking-widest mb-2">Kode Maskapai
+                        (Staf) <span class="text-rose-500">*</span></label>
+                    <div class="relative group">
+                        <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none"><i
+                                class="fa-solid fa-plane-departure text-electric/70 group-focus-within:text-electric transition-colors"></i>
+                        </div>
+                        <select name="kode_maskapai" id="kode_maskapai_input"
+                            class="w-full pl-11 pr-10 py-3.5 border border-white/10 rounded-xl focus:ring-1 focus:ring-electric focus:border-electric outline-none transition-all bg-white/5 hover:bg-white/10 text-sm appearance-none text-white backdrop-blur-md border-electric/30 bg-electric/5">
+                            <option value="" disabled selected>Pilih Maskapai...</option>
+                            <option value="GA">Garuda Indonesia (GA)</option>
+                            <option value="SQ">Singapore Airlines (SQ)</option>
+                            <option value="QZ">AirAsia Indonesia (QZ)</option>
+                            <option value="JT">Lion Air (JT)</option>
+                        </select>
+                    </div>
+                </div>
+
+            </div>
+
+            <button type="submit"
+                class="w-full bg-gradient-to-r from-electric/80 to-blue-600 hover:from-electric hover:to-blue-500 text-white font-bold py-4 rounded-xl shadow-lg shadow-electric/30 transition-all duration-300 flex justify-center items-center mt-10">
+                <span class="tracking-widest uppercase text-sm">Submit Pendaftaran</span>
+                <i class="fa-solid fa-arrow-right ml-3"></i>
+            </button>
+        </form>
+
+        <p class="text-center text-sm text-slate-400 mt-8 tracking-wider">
+            Sudah memiliki akun? <a href="{% url 'login' %}"
+                class="text-electric font-bold hover:text-white transition-colors border-b border-electric/30 hover:border-white pb-0.5">Login
+                di sini</a>
+        </p>
+    </div>
+</div>
+
+<script>
+    function setRole(role) {
+        document.getElementById('role-input').value = role;
+        const slider = document.getElementById('role-slider');
+        const btnMember = document.getElementById('btn-member');
+        const btnStaf = document.getElementById('btn-staf');
+        const stafFields = document.getElementById('staf-fields');
+        const maskapaiInput = document.getElementById('kode_maskapai_input');
+
+        if (role === 'member') {
+            slider.style.transform = 'translateX(0)';
+            btnMember.classList.add('text-electric');
+            btnMember.classList.remove('text-slate-500', 'hover:text-slate-300');
+            btnStaf.classList.remove('text-electric');
+            btnStaf.classList.add('text-slate-500', 'hover:text-slate-300');
+
+            stafFields.classList.add('hidden');
+            maskapaiInput.removeAttribute('required');
+        } else {
+            slider.style.transform = 'translateX(100%)';
+            btnStaf.classList.add('text-electric');
+            btnStaf.classList.remove('text-slate-500', 'hover:text-slate-300');
+            btnMember.classList.remove('text-electric');
+            btnMember.classList.add('text-slate-500', 'hover:text-slate-300');
+
+            stafFields.classList.remove('hidden');
+            maskapaiInput.setAttribute('required', 'required');
+        }
+    }
+</script>
+{% endblock %}

@@ -1,62 +1,77 @@
 <!DOCTYPE html>
-<html lang="id">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AeroMiles | Premium Portal</title>
+    <title>AeroMiles | Premium Loyalty</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        dsn: '#000B1B', // Deep Space Navy
+                        electric: '#00E5FF', // Electric Blue
+                        lavender: '#B388FF', // Lavender
+                    },
+                    fontFamily: {
+                        sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
     <style>
-        .nav-link { 
-            @apply flex items-center text-sm font-medium text-slate-300 hover:text-cyan-300 hover:bg-slate-800 rounded-lg px-3 py-2 transition-all duration-300 whitespace-nowrap; 
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 3px; }
+        ::-webkit-scrollbar-track { background: #000B1B; }
+        
+        select option {
+            background-color: #000B1B;
+            color: white;
         }
-        .nav-icon { 
-            @apply text-lg mr-2;
-        }
-        ::-webkit-scrollbar { width: 8px; height: 8px; }
-        ::-webkit-scrollbar-thumb { background: #475569; border-radius: 4px; }
-        ::-webkit-scrollbar-track { background: #0f172a; }
     </style>
 </head>
-<body class="bg-slate-50 min-h-screen flex flex-col font-sans">
+<body class="bg-dsn min-h-screen flex flex-col font-sans text-white">
 
-    <nav class="bg-slate-900 text-white shadow-xl sticky top-0 z-50 border-b border-slate-800">
+    <nav class="bg-dsn/80 backdrop-blur-lg text-white sticky top-0 z-50 border-b border-white/5">
         <div class="max-w-[1400px] mx-auto px-6 overflow-x-auto">
             <div class="flex justify-between items-center h-20 min-w-max">
                 
                 <div class="flex items-center space-x-3 cursor-pointer mr-8">
-                    <div class="bg-gradient-to-br from-cyan-400 to-blue-500 p-2.5 rounded-xl shadow-lg shadow-cyan-500/20">
-                        <i class="fa-solid fa-plane-up text-slate-900 text-xl"></i>
+                    <div class="bg-white/5 p-2.5 rounded-xl border border-white/10 shadow-[0_0_10px_rgba(0,229,255,0.2)]">
+                        <i class="fa-solid fa-satellite text-electric text-xl"></i>
                     </div>
-                    <span class="font-extrabold text-2xl tracking-wide bg-clip-text text-transparent bg-gradient-to-r from-cyan-300 to-blue-400">AeroMiles</span>
+                    <span class="font-extrabold text-2xl tracking-widest text-white">AEROMILES</span>
                 </div>
 
                 <div class="flex items-center space-x-1.5">
                     
                     {% if request.session.role == 'member' %}
-                        <a href="{% url 'dashboard' %}" class="nav-link text-white bg-slate-800/50"><i class="fa-solid fa-border-all nav-icon text-cyan-400"></i>Dashboard</a>
-                        <a href="#" class="nav-link"><i class="fa-regular fa-id-card nav-icon"></i>Identitas</a>
-                        <a href="#" class="nav-link"><i class="fa-solid fa-file-signature nav-icon"></i>Klaim</a>
-                        <a href="#" class="nav-link"><i class="fa-solid fa-exchange-alt nav-icon"></i>Transfer</a>
-                        <a href="#" class="nav-link"><i class="fa-solid fa-gift nav-icon"></i>Redeem</a>
-                        <a href="#" class="nav-link"><i class="fa-solid fa-box-open nav-icon"></i>Packages</a>
-                        <a href="#" class="nav-link"><i class="fa-solid fa-ranking-star nav-icon"></i>Tier</a>
-                        <a href="#" class="nav-link"><i class="fa-solid fa-user-gear nav-icon"></i>Profil</a>
-                        <a href="{% url 'logout' %}" class="nav-link text-rose-400 hover:text-rose-300 hover:bg-rose-950/40 ml-2 border border-rose-900/50"><i class="fa-solid fa-arrow-right-from-bracket nav-icon"></i>Logout</a>
+                        <a href="{% url 'dashboard' %}" class="flex items-center text-sm font-medium text-slate-300 hover:text-electric hover:bg-white/5 rounded-lg px-3 py-2 transition-all duration-300 whitespace-nowrap bg-white/5 border border-white/10"><i class="fa-solid fa-border-all text-lg mr-2 opacity-70 text-electric"></i>Dashboard</a>
+                        <a href="#" class="flex items-center text-sm font-medium text-slate-300 hover:text-electric hover:bg-white/5 rounded-lg px-3 py-2 transition-all duration-300 whitespace-nowrap"><i class="fa-solid fa-ranking-star text-lg mr-2 opacity-70"></i>Status</a>
+                        <a href="#" class="flex items-center text-sm font-medium text-slate-300 hover:text-electric hover:bg-white/5 rounded-lg px-3 py-2 transition-all duration-300 whitespace-nowrap"><i class="fa-solid fa-gift text-lg mr-2 opacity-70"></i>Rewards</a>
+                        <a href="#" class="flex items-center text-sm font-medium text-slate-300 hover:text-electric hover:bg-white/5 rounded-lg px-3 py-2 transition-all duration-300 whitespace-nowrap"><i class="fa-solid fa-plane-up text-lg mr-2 opacity-70"></i>Travel</a>
+                        <a href="#" class="flex items-center text-sm font-medium text-slate-300 hover:text-electric hover:bg-white/5 rounded-lg px-3 py-2 transition-all duration-300 whitespace-nowrap"><i class="fa-solid fa-user-gear text-lg mr-2 opacity-70"></i>Account</a>
+                        <a href="{% url 'logout' %}" class="flex items-center text-sm font-medium text-rose-400 hover:text-rose-300 hover:bg-rose-950/40 rounded-lg px-3 py-2 transition-all duration-300 whitespace-nowrap ml-2 border border-rose-900/50"><i class="fa-solid fa-arrow-right-from-bracket text-lg mr-2 opacity-70"></i>Logout</a>
 
                     {% elif request.session.role == 'staf' %}
-                        <a href="{% url 'dashboard' %}" class="nav-link text-white bg-slate-800/50"><i class="fa-solid fa-border-all nav-icon text-cyan-400"></i>Dashboard</a>
-                        <a href="#" class="nav-link"><i class="fa-solid fa-users nav-icon"></i>Member</a>
-                        <a href="#" class="nav-link"><i class="fa-solid fa-file-circle-check nav-icon"></i>Klaim</a>
-                        <a href="#" class="nav-link"><i class="fa-solid fa-gifts nav-icon"></i>Hadiah</a>
-                        <a href="#" class="nav-link"><i class="fa-solid fa-handshake nav-icon"></i>Mitra</a>
-                        <a href="#" class="nav-link"><i class="fa-solid fa-file-invoice-dollar nav-icon"></i>Transaksi</a>
-                        <a href="#" class="nav-link"><i class="fa-solid fa-user-gear nav-icon"></i>Profil</a>
-                        <a href="{% url 'logout' %}" class="nav-link text-rose-400 hover:text-rose-300 hover:bg-rose-950/40 ml-2 border border-rose-900/50"><i class="fa-solid fa-arrow-right-from-bracket nav-icon"></i>Logout</a>
+                        <a href="{% url 'dashboard' %}" class="flex items-center text-sm font-medium text-slate-300 hover:text-electric hover:bg-white/5 rounded-lg px-3 py-2 transition-all duration-300 whitespace-nowrap bg-white/5 border border-white/10"><i class="fa-solid fa-border-all text-lg mr-2 opacity-70 text-electric"></i>Dashboard</a>
+                        <a href="#" class="flex items-center text-sm font-medium text-slate-300 hover:text-electric hover:bg-white/5 rounded-lg px-3 py-2 transition-all duration-300 whitespace-nowrap"><i class="fa-solid fa-users text-lg mr-2 opacity-70"></i>Member</a>
+                        <a href="#" class="flex items-center text-sm font-medium text-slate-300 hover:text-electric hover:bg-white/5 rounded-lg px-3 py-2 transition-all duration-300 whitespace-nowrap"><i class="fa-solid fa-file-circle-check text-lg mr-2 opacity-70"></i>Klaim</a>
+                        <a href="#" class="flex items-center text-sm font-medium text-slate-300 hover:text-electric hover:bg-white/5 rounded-lg px-3 py-2 transition-all duration-300 whitespace-nowrap"><i class="fa-solid fa-gifts text-lg mr-2 opacity-70"></i>Hadiah</a>
+                        <a href="#" class="flex items-center text-sm font-medium text-slate-300 hover:text-electric hover:bg-white/5 rounded-lg px-3 py-2 transition-all duration-300 whitespace-nowrap"><i class="fa-solid fa-handshake text-lg mr-2 opacity-70"></i>Mitra</a>
+                        <a href="#" class="flex items-center text-sm font-medium text-slate-300 hover:text-electric hover:bg-white/5 rounded-lg px-3 py-2 transition-all duration-300 whitespace-nowrap"><i class="fa-solid fa-file-invoice-dollar text-lg mr-2 opacity-70"></i>Transaksi</a>
+                        <a href="#" class="flex items-center text-sm font-medium text-slate-300 hover:text-electric hover:bg-white/5 rounded-lg px-3 py-2 transition-all duration-300 whitespace-nowrap"><i class="fa-solid fa-user-gear text-lg mr-2 opacity-70"></i>Profil</a>
+                        <a href="{% url 'logout' %}" class="flex items-center text-sm font-medium text-rose-400 hover:text-rose-300 hover:bg-rose-950/40 rounded-lg px-3 py-2 transition-all duration-300 whitespace-nowrap ml-2 border border-rose-900/50"><i class="fa-solid fa-arrow-right-from-bracket text-lg mr-2 opacity-70"></i>Logout</a>
 
                     {% else %}
-                        <a href="{% url 'login' %}" class="nav-link text-white"><i class="fa-solid fa-right-to-bracket nav-icon"></i>Login</a>
-                        <a href="#" class="nav-link"><i class="fa-solid fa-user-plus nav-icon text-cyan-400"></i>Registrasi</a>
+                        <a href="{% url 'login' %}" class="flex items-center text-sm font-medium text-white hover:text-electric hover:bg-white/5 rounded-lg px-3 py-2 transition-all duration-300 whitespace-nowrap"><i class="fa-solid fa-right-to-bracket text-lg mr-2 opacity-70"></i>Login</a>
+                        <a href="{% url 'register' %}" class="flex items-center text-sm font-medium text-slate-300 hover:text-electric hover:bg-white/5 rounded-lg px-3 py-2 transition-all duration-300 whitespace-nowrap"><i class="fa-solid fa-user-plus text-lg mr-2 opacity-70 text-electric"></i>Registrasi</a>
                     {% endif %}
 
                 </div>
@@ -64,13 +79,13 @@
         </div>
         
         {% if request.session.role %}
-        <div class="bg-slate-950 py-2 px-6 text-sm flex justify-end items-center border-t border-slate-800/50">
-            <span class="text-slate-400 mr-2 text-xs">Logged in as:</span>
-            <div class="flex items-center bg-slate-900 px-3 py-1 rounded-full border border-slate-700">
-                <div class="w-2 h-2 rounded-full bg-cyan-400 mr-2 shadow-[0_0_8px_rgba(34,211,238,0.8)] animate-pulse"></div>
+        <div class="bg-black/40 py-2 px-6 text-sm flex justify-end items-center border-t border-white/5">
+            <span class="text-slate-400 mr-2 text-xs uppercase tracking-wider">Status:</span>
+            <div class="flex items-center bg-white/5 px-3 py-1 rounded-full border border-white/10">
+                <div class="w-2 h-2 rounded-full bg-electric mr-2 shadow-[0_0_8px_rgba(0,229,255,0.8)] animate-pulse"></div>
                 <span class="font-semibold text-white text-xs">{{ request.session.name }}</span>
                 <span class="mx-2 text-slate-600">|</span>
-                <span class="text-cyan-400 uppercase tracking-widest text-[10px] font-bold">{{ request.session.role }}</span>
+                <span class="text-electric uppercase tracking-widest text-[10px] font-bold">{{ request.session.role }}</span>
             </div>
         </div>
         {% endif %}
@@ -79,6 +94,7 @@
     <main class="flex-grow flex flex-col relative">
         {% block content %}{% endblock %}
     </main>
+
 
 </body>
 </html>

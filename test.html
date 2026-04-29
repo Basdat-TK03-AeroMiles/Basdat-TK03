@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Test Tailwind</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        dsn: '#000B1B',
+                        electric: '#00E5FF',
+                        lavender: '#B388FF',
+                    },
+                    fontFamily: {
+                        sans: ['Plus Jakarta Sans', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <style type="text/tailwindcss">
+        .test-class {
+            @apply bg-dsn text-electric p-10 rounded-xl shadow-lg shadow-electric/30 hover:shadow-xl hover:shadow-electric/50 transition-all duration-300;
+        }
+    </style>
+</head>
+<body class="bg-slate-900 p-20 flex justify-center items-center h-screen">
+    <div class="test-class">
+        <h1 class="text-4xl font-bold">Hello Tailwind</h1>
+    </div>
+</body>
+</html>
