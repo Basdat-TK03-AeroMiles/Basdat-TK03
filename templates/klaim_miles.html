@@ -12,7 +12,6 @@
         </button>
     </div>
 
-    <!-- Filter Status -->
     <div class="flex space-x-2 mb-6" id="filter-buttons">
         <button onclick="filterTable('Semua', this)" class="filter-btn px-4 py-1.5 rounded-full bg-electric text-white text-sm font-medium">Semua</button>
         <button onclick="filterTable('Menunggu', this)" class="filter-btn px-4 py-1.5 rounded-full bg-white/5 text-slate-400 hover:bg-white/10 text-sm font-medium transition-all">Menunggu</button>
@@ -55,10 +54,24 @@
                     <td class="p-4 text-center">
                         {% if k.status_penerimaan == 'Menunggu' %}
                         <div class="flex justify-center space-x-2">
-                            <button onclick="openEditModal('{{ k.id }}', '{{ k.maskapai }}', '{{ k.bandara_asal }}', '{{ k.bandara_tujuan }}', '{{ k.tanggal_penerbangan|date:'Y-m-d' }}', '{{ k.flight_number }}', '{{ k.kelas_kabin }}', '{{ k.nomor_tiket }}', '{{ k.pnr }}')" class="p-2 text-slate-400 hover:text-electric transition-colors">
+                            <button 
+                                onclick="handleEdit(this)"
+                                data-id="{{ k.id }}"
+                                data-maskapai="{{ k.maskapai|escapejs }}"
+                                data-asal="{{ k.bandara_asal|escapejs }}"
+                                data-tujuan="{{ k.bandara_tujuan|escapejs }}"
+                                data-tanggal="{{ k.tanggal_penerbangan|date:'Y-m-d' }}"
+                                data-flight="{{ k.flight_number|escapejs }}"
+                                data-kelas="{{ k.kelas_kabin|escapejs }}"
+                                data-tiket="{{ k.nomor_tiket|escapejs }}"
+                                data-pnr="{{ k.pnr|escapejs }}"
+                                class="p-2 text-slate-400 hover:text-electric transition-colors">
                                 <i class="fa-solid fa-pen"></i>
                             </button>
-                            <button onclick="confirmDelete('{{ k.id }}')" class="p-2 text-slate-400 hover:text-rose-500 transition-colors">
+
+                            <button 
+                                onclick="confirmDelete('{{ k.id }}')" 
+                                class="p-2 text-slate-400 hover:text-rose-500 transition-colors">
                                 <i class="fa-solid fa-trash"></i>
                             </button>
                         </div>
@@ -73,7 +86,6 @@
     </div>
 </div>
 
-<!-- MODAL AJUKAN KLAIM BARU -->
 <div id="modal-klaim" class="hidden fixed inset-0 z-50 overflow-y-auto bg-black/60 backdrop-blur-sm">
     <div class="flex items-center justify-center min-h-screen p-4">
         <div class="bg-slate-900 border border-white/10 rounded-2xl w-full max-w-2xl shadow-2xl">
@@ -142,7 +154,6 @@
     </div>
 </div>
 
-<!-- MODAL EDIT -->
 <div id="modal-edit" class="hidden fixed inset-0 z-50 overflow-y-auto bg-black/60 backdrop-blur-sm">
     <div class="flex items-center justify-center min-h-screen p-4">
         <div class="bg-slate-900 border border-white/10 rounded-2xl w-full max-w-2xl shadow-2xl">
@@ -255,6 +266,20 @@
         if (confirm("Batalkan pengajuan klaim #" + id + "?")) {
             window.location.href = `/klaim-miles/hapus/${id}/`;
         }
+    }
+
+    function handleEdit(el) {
+        openEditModal(
+            el.dataset.id,
+            el.dataset.maskapai,
+            el.dataset.asal,
+            el.dataset.tujuan,
+            el.dataset.tanggal,
+            el.dataset.flight,
+            el.dataset.kelas,
+            el.dataset.tiket,
+            el.dataset.pnr
+        );
     }
 </script>
 
