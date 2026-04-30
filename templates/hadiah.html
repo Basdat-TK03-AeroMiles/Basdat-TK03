@@ -54,49 +54,52 @@
 </div>
 
 <div id="modalTambahHadiah" class="fixed inset-0 bg-black/60 backdrop-blur-sm hidden items-center justify-center z-50 p-4 flex">
-    <div class="bg-[#0d1b2a] border border-white/10 rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden">
-        <div class="p-6 flex justify-between items-center border-b border-white/5">
-            <h3 class="text-lg font-bold text-white">Tambah Hadiah Baru</h3>
-            <button onclick="document.getElementById('modalTambahHadiah').classList.add('hidden')" class="text-slate-500 hover:text-white transition-colors"><i class="fa-solid fa-xmark text-lg"></i></button>
+    <div class="bg-white rounded-xl shadow-2xl w-full max-w-2xl overflow-hidden">
+        <div class="p-4 flex justify-between items-center border-b border-slate-100">
+            <h3 class="text-lg font-bold text-slate-900">Tambah Hadiah Baru</h3>
+            <button onclick="document.getElementById('modalTambahHadiah').classList.add('hidden')" class="text-slate-400 hover:text-slate-600 transition-colors"><i class="fa-solid fa-xmark text-lg"></i></button>
         </div>
         <form action="{% url 'tambah_hadiah' %}" method="POST" class="p-6 space-y-4">
             {% csrf_token %}
-            <div>
-                <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Nama Hadiah</label>
-                <input type="text" name="nama" required class="w-full px-4 py-2.5 bg-white/5 border border-white/10 rounded-xl text-sm text-white placeholder-slate-600 focus:ring-2 focus:ring-electric/50 outline-none transition-all">
-            </div>
             <div class="grid grid-cols-2 gap-4">
-                <div>
-                    <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Penyedia</label>
-                    <select name="id_penyedia" required class="w-full px-4 py-2.5 bg-white/5 border border-white/10 rounded-xl text-sm text-white focus:ring-2 focus:ring-electric/50 outline-none transition-all">
+                <div class="space-y-1">
+                    <label class="text-xs font-bold text-slate-900">Kode Hadiah</label>
+                    <input type="text" name="kode_hadiah" required class="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm text-slate-800 outline-none focus:border-blue-500 transition-all">
+                </div>
+                <div class="space-y-1">
+                    <label class="text-xs font-bold text-slate-900">Nama Hadiah</label>
+                    <input type="text" name="nama" required class="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm text-slate-800 outline-none focus:border-blue-500 transition-all">
+                </div>
+                <div class="space-y-1">
+                    <label class="text-xs font-bold text-slate-900">Penyedia</label>
+                    <select name="id_penyedia" required class="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm text-slate-800 outline-none focus:border-blue-500 transition-all">
                         <option value="">Pilih Penyedia...</option>
                         {% for p in penyedia_list %}
                             <option value="{{ p.id }}">{{ p.nama_penyedia }}</option>
                         {% endfor %}
                     </select>
                 </div>
-                <div>
-                    <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Miles Dibutuhkan</label>
-                    <input type="number" name="miles" required class="w-full px-4 py-2.5 bg-white/5 border border-white/10 rounded-xl text-sm text-white placeholder-slate-600 focus:ring-2 focus:ring-electric/50 outline-none transition-all">
+                <div class="space-y-1">
+                    <label class="text-xs font-bold text-slate-900">Miles Dibutuhkan</label>
+                    <input type="number" name="miles" required class="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm text-slate-800 outline-none focus:border-blue-500 transition-all">
                 </div>
             </div>
-            <div>
-                <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Deskripsi</label>
-                <textarea name="deskripsi" rows="3" class="w-full px-4 py-2.5 bg-white/5 border border-white/10 rounded-xl text-sm text-white placeholder-slate-600 focus:ring-2 focus:ring-electric/50 outline-none transition-all"></textarea>
+            <div class="space-y-1">
+                <label class="text-xs font-bold text-slate-900">Deskripsi</label>
+                <textarea name="deskripsi" rows="3" class="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm text-slate-800 outline-none focus:border-blue-500 transition-all"></textarea>
             </div>
             <div class="grid grid-cols-2 gap-4">
-                <div>
-                    <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Valid Start</label>
-                    <input type="date" name="valid_start_date" required class="w-full px-4 py-2.5 bg-white/5 border border-white/10 rounded-xl text-sm text-white focus:ring-2 focus:ring-electric/50 outline-none transition-all">
+                <div class="space-y-1">
+                    <label class="text-xs font-bold text-slate-900">Valid Start</label>
+                    <input type="date" name="valid_start_date" required class="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm text-slate-800 outline-none focus:border-blue-500 transition-all">
                 </div>
-                <div>
-                    <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Program End</label>
-                    <input type="date" name="program_end" required class="w-full px-4 py-2.5 bg-white/5 border border-white/10 rounded-xl text-sm text-white focus:ring-2 focus:ring-electric/50 outline-none transition-all">
+                <div class="space-y-1">
+                    <label class="text-xs font-bold text-slate-900">Program End</label>
+                    <input type="date" name="program_end" required class="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm text-slate-800 outline-none focus:border-blue-500 transition-all">
                 </div>
             </div>
-            <div class="flex justify-end gap-3 pt-2">
-                <button type="button" onclick="document.getElementById('modalTambahHadiah').classList.add('hidden')" class="px-5 py-2.5 bg-white/5 border border-white/10 text-slate-400 rounded-xl text-sm font-bold hover:bg-white/10 transition-all">Batal</button>
-                <button type="submit" class="px-5 py-2.5 bg-electric/10 hover:bg-electric/20 text-electric border border-electric/30 rounded-xl text-sm font-bold transition-all">Simpan</button>
+            <div class="flex justify-end pt-2">
+                <button type="submit" class="bg-[#003366] hover:bg-blue-900 text-white px-8 py-2 rounded-lg text-sm font-bold transition-all">Simpan</button>
             </div>
         </form>
     </div>
@@ -104,49 +107,51 @@
 
 {% for hadiah in hadiah_list %}
 <div id="modalEditHadiah_{{ forloop.counter }}" class="fixed inset-0 bg-black/60 backdrop-blur-sm hidden items-center justify-center z-50 p-4 flex">
-    <div class="bg-[#0d1b2a] border border-white/10 rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden">
-        <div class="p-6 flex justify-between items-center border-b border-white/5">
-            <h3 class="text-lg font-bold text-white">Edit Hadiah</h3>
-            <button onclick="document.getElementById('modalEditHadiah_{{ forloop.counter }}').classList.add('hidden')" class="text-slate-500 hover:text-white transition-colors"><i class="fa-solid fa-xmark text-lg"></i></button>
+    <div class="bg-white rounded-xl shadow-2xl w-full max-w-2xl overflow-hidden">
+        <div class="p-4 flex justify-between items-center border-b border-slate-100">
+            <h3 class="text-lg font-bold text-slate-900">Edit Hadiah</h3>
+            <button onclick="document.getElementById('modalEditHadiah_{{ forloop.counter }}').classList.add('hidden')" class="text-slate-400 hover:text-slate-600 transition-colors"><i class="fa-solid fa-xmark text-lg"></i></button>
         </div>
         <form action="{% url 'edit_hadiah' hadiah.kode_hadiah %}" method="POST" class="p-6 space-y-4">
             {% csrf_token %}
-            <div>
-                <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Nama Hadiah</label>
-                <input type="text" name="nama" value="{{ hadiah.nama }}" required class="w-full px-4 py-2.5 bg-white/5 border border-white/10 rounded-xl text-sm text-white focus:ring-2 focus:ring-electric/50 outline-none transition-all">
-            </div>
             <div class="grid grid-cols-2 gap-4">
-                <div>
-                    <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Penyedia</label>
-                    <select name="id_penyedia" required class="w-full px-4 py-2.5 bg-white/5 border border-white/10 rounded-xl text-sm text-white focus:ring-2 focus:ring-electric/50 outline-none transition-all">
-                        <option value="">Pilih Penyedia...</option>
+                <div class="space-y-1">
+                    <label class="text-xs font-bold text-slate-900">Kode Hadiah</label>
+                    <input type="text" value="{{ hadiah.kode_hadiah }}" disabled class="w-full px-4 py-2 bg-slate-100 border border-slate-200 rounded-lg text-sm text-slate-500 cursor-not-allowed">
+                </div>
+                <div class="space-y-1">
+                    <label class="text-xs font-bold text-slate-900">Nama Hadiah</label>
+                    <input type="text" name="nama" value="{{ hadiah.nama }}" required class="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm text-slate-800 outline-none focus:border-blue-500 transition-all">
+                </div>
+                <div class="space-y-1">
+                    <label class="text-xs font-bold text-slate-900">Penyedia</label>
+                    <select name="id_penyedia" required class="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm text-slate-800 outline-none focus:border-blue-500 transition-all">
                         {% for p in penyedia_list %}
                             <option value="{{ p.id }}" {% if p.id == hadiah.id_penyedia %}selected{% endif %}>{{ p.nama_penyedia }}</option>
                         {% endfor %}
                     </select>
                 </div>
-                <div>
-                    <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Miles Dibutuhkan</label>
-                    <input type="number" name="miles" value="{{ hadiah.miles }}" required class="w-full px-4 py-2.5 bg-white/5 border border-white/10 rounded-xl text-sm text-white focus:ring-2 focus:ring-electric/50 outline-none transition-all">
+                <div class="space-y-1">
+                    <label class="text-xs font-bold text-slate-900">Miles Dibutuhkan</label>
+                    <input type="number" name="miles" value="{{ hadiah.miles|floatformat:0 }}" required class="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm text-slate-800 outline-none focus:border-blue-500 transition-all">
                 </div>
             </div>
-            <div>
-                <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Deskripsi</label>
-                <textarea name="deskripsi" rows="3" class="w-full px-4 py-2.5 bg-white/5 border border-white/10 rounded-xl text-sm text-white focus:ring-2 focus:ring-electric/50 outline-none transition-all">{{ hadiah.deskripsi }}</textarea>
+            <div class="space-y-1">
+                <label class="text-xs font-bold text-slate-900">Deskripsi</label>
+                <textarea name="deskripsi" rows="3" class="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm text-slate-800 outline-none focus:border-blue-500 transition-all">{{ hadiah.deskripsi }}</textarea>
             </div>
             <div class="grid grid-cols-2 gap-4">
-                <div>
-                    <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Valid Start</label>
-                    <input type="date" name="valid_start_date" value="{{ hadiah.valid_start_date|date:'Y-m-d' }}" required class="w-full px-4 py-2.5 bg-white/5 border border-white/10 rounded-xl text-sm text-white focus:ring-2 focus:ring-electric/50 outline-none transition-all">
+                <div class="space-y-1">
+                    <label class="text-xs font-bold text-slate-900">Valid Start</label>
+                    <input type="date" name="valid_start_date" value="{{ hadiah.valid_start_date|date:'Y-m-d' }}" required class="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm text-slate-800 outline-none focus:border-blue-500 transition-all">
                 </div>
-                <div>
-                    <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Program End</label>
-                    <input type="date" name="program_end" value="{{ hadiah.program_end|date:'Y-m-d' }}" required class="w-full px-4 py-2.5 bg-white/5 border border-white/10 rounded-xl text-sm text-white focus:ring-2 focus:ring-electric/50 outline-none transition-all">
+                <div class="space-y-1">
+                    <label class="text-xs font-bold text-slate-900">Program End</label>
+                    <input type="date" name="program_end" value="{{ hadiah.program_end|date:'Y-m-d' }}" required class="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm text-slate-800 outline-none focus:border-blue-500 transition-all">
                 </div>
             </div>
-            <div class="flex justify-end gap-3 pt-2">
-                <button type="button" onclick="document.getElementById('modalEditHadiah_{{ forloop.counter }}').classList.add('hidden')" class="px-5 py-2.5 bg-white/5 border border-white/10 text-slate-400 rounded-xl text-sm font-bold hover:bg-white/10 transition-all">Batal</button>
-                <button type="submit" class="px-5 py-2.5 bg-electric/10 hover:bg-electric/20 text-electric border border-electric/30 rounded-xl text-sm font-bold transition-all">Update Data</button>
+            <div class="flex justify-end pt-2">
+                <button type="submit" class="bg-[#003366] hover:bg-blue-900 text-white px-8 py-2 rounded-lg text-sm font-bold transition-all">Simpan</button>
             </div>
         </form>
     </div>
