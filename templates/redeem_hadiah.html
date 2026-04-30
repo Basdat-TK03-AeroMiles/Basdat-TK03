@@ -1,0 +1,83 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="p-8 max-w-[1400px] mx-auto">
+    <div class="flex justify-between items-center mb-8">
+        {% include 'components/page_header.html' with title="Redeem Hadiah" subtitle="Tukarkan Award Miles Anda dengan berbagai hadiah menarik." %}
+        {% include 'components/miles_badge.html' with award_miles=award_miles %}
+    </div>
+
+    {% include 'components/messages.html' %}
+
+    <h2 class="text-xl font-bold text-white mb-4 uppercase tracking-widest">Katalog Hadiah</h2>
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
+        {% for h in hadiah_list %}
+        <div class="bg-white/5 border border-white/10 rounded-2xl p-6 flex flex-col transition-all hover:bg-white/10 shadow-lg group">
+            <div class="flex justify-between items-start mb-4">
+                <div class="w-12 h-12 rounded-xl bg-electric/10 text-electric flex items-center justify-center text-xl border border-electric/20">
+                    <i class="fa-solid fa-gift"></i>
+                </div>
+                <div class="bg-dsn px-3 py-1 rounded-full text-xs font-bold text-slate-300 border border-white/10">
+                    {{ h.kode_hadiah }}
+                </div>
+            </div>
+            
+            <h3 class="text-lg font-bold text-white mb-1">{{ h.nama }}</h3>
+            <p class="text-xs text-electric mb-2">{{ h.nama_penyedia }}</p>
+            <p class="text-sm text-slate-400 mb-3 flex-grow">{{ h.deskripsi }}</p>
+            
+            <div class="text-xs text-slate-500 mb-4">
+                <i class="fa-regular fa-calendar mr-1"></i> {{ h.valid_start_date|date:"d M Y" }} – {{ h.program_end|date:"d M Y" }}
+            </div>
+
+            <div class="mb-4">
+                <div class="text-xs text-slate-500 uppercase tracking-wider mb-1">Dibutuhkan</div>
+                <div class="text-xl font-extrabold text-electric">{{ h.miles }} <span class="text-xs text-slate-400 font-normal tracking-widest">MILES</span></div>
+            </div>
+
+            <form method="POST" action="{% url 'redeem_hadiah' %}" onsubmit="return confirm('Anda akan menukarkan {{ h.miles }} Award Miles untuk hadiah ini. Lanjutkan?');">
+                {% csrf_token %}
+                <input type="hidden" name="kode_hadiah" value="{{ h.kode_hadiah }}">
+                {% if award_miles >= h.miles %}
+                <button type="submit" class="w-full bg-electric/10 hover:bg-electric text-electric hover:text-dsn font-bold py-3 rounded-xl transition-all duration-300 uppercase tracking-widest text-xs border border-electric/30 hover:border-transparent">
+                    Tukarkan
+                </button>
+                {% else %}
+                <button type="button" disabled class="w-full bg-white/5 text-slate-500 font-bold py-3 rounded-xl uppercase tracking-widest text-xs border border-white/10 cursor-not-allowed">
+                    Miles Tidak Cukup
+                </button>
+                {% endif %}
+            </form>
+        </div>
+        {% empty %}
+        {% include 'components/empty_state.html' with text="Tidak ada hadiah yang tersedia saat ini." %}
+        {% endfor %}
+    </div>
+
+    <h2 class="text-xl font-bold text-white mb-4 uppercase tracking-widest">Riwayat Redeem</h2>
+    <div class="bg-white/5 border border-white/10 rounded-2xl overflow-hidden shadow-2xl backdrop-blur-md">
+        <table class="w-full text-left border-collapse">
+            <thead>
+                <tr class="bg-dsn/80 border-b border-white/10 text-xs uppercase tracking-widest text-slate-400">
+                    <th class="py-4 px-6 font-bold">Waktu</th>
+                    <th class="py-4 px-6 font-bold">Kode Hadiah</th>
+                    <th class="py-4 px-6 font-bold">Nama Hadiah</th>
+                    <th class="py-4 px-6 font-bold text-right">Miles Digunakan</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-white/5 text-sm">
+                {% for r in riwayat_redeem %}
+                <tr class="hover:bg-white/5 transition-colors">
+                    <td class="py-4 px-6 text-slate-300 font-mono">{{ r.timestamp|date:"Y-m-d H:i:s" }}</td>
+                    <td class="py-4 px-6 text-slate-400 font-mono">{{ r.kode_hadiah }}</td>
+                    <td class="py-4 px-6 text-white">{{ r.nama_hadiah }}</td>
+                    <td class="py-4 px-6 text-right text-rose-400 font-bold">-{{ r.miles }}</td>
+                </tr>
+                {% empty %}
+                <tr>{% include 'components/empty_state.html' with colspan=4 text="Belum ada riwayat redeem." %}</tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

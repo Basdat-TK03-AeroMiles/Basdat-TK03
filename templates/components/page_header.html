@@ -1,0 +1,7 @@
+{% comment %}Reusable page header. Pass: title, subtitle (optional){% endcomment %}
+<div class="mb-8">
+    <h1 class="text-3xl font-extrabold text-white tracking-widest uppercase">{{ title }}</h1>
+    {% if subtitle %}
+    <p class="text-slate-400 mt-2">{{ subtitle }}</p>
+    {% endif %}
+</div>
