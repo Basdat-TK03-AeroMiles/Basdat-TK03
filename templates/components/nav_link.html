@@ -1,0 +1,5 @@
+{% if is_logout %}
+<a href="{{ url }}" class="nav-link-logout"><i class="{{ icon }} text-lg mr-2 opacity-70"></i>{{ label }}</a>
+{% else %}
+<a href="{{ url }}" class="nav-link {% if request.path == url %}nav-link-active{% endif %}"><i class="{{ icon }} text-lg mr-2 opacity-70"></i>{{ label }}</a>
+{% endif %}

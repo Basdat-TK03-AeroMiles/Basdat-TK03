@@ -1,0 +1,160 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="p-8 max-w-[1400px] mx-auto">
+    {% include 'components/page_header.html' with title="Kelola Hadiah & Penyedia" %}
+
+    {% if messages %}
+        {% for message in messages %}
+            <div class="bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 px-4 py-3 rounded-xl text-sm mb-4">{{ message }}</div>
+        {% endfor %}
+    {% endif %}
+
+    <div class="flex justify-end mb-6">
+        <button onclick="document.getElementById('modalTambahHadiah').classList.remove('hidden')" class="bg-electric/10 hover:bg-electric/20 text-electric border border-electric/30 px-5 py-2.5 rounded-xl text-sm font-bold transition-all flex items-center">
+            <i class="fa-solid fa-plus mr-2"></i> Tambah Hadiah
+        </button>
+    </div>
+
+    <div class="bg-white/5 border border-white/10 rounded-2xl overflow-hidden shadow-lg">
+        <table class="w-full text-left">
+            <thead>
+                <tr class="text-xs font-bold text-slate-500 uppercase tracking-wider border-b border-white/5">
+                    <th class="p-5">Kode</th>
+                    <th class="p-5">Nama</th>
+                    <th class="p-5">Penyedia</th>
+                    <th class="p-5">Miles</th>
+                    <th class="p-5">Periode</th>
+                    <th class="p-5 text-center">Aksi</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-white/5">
+                {% for hadiah in hadiah_list %}
+                <tr class="text-sm text-slate-300 hover:bg-white/5 transition-colors">
+                    <td class="p-5 font-bold font-mono text-white">{{ hadiah.kode_hadiah }}</td>
+                    <td class="p-5 text-white">{{ hadiah.nama }}</td>
+                    <td class="p-5 text-slate-400">{{ hadiah.nama_penyedia }}</td>
+                    <td class="p-5 font-bold text-electric font-mono">{{ hadiah.miles|floatformat:0 }}</td>
+                    <td class="p-5 text-xs text-slate-500 font-mono">{{ hadiah.valid_start_date|date:"Y-m-d" }} — {{ hadiah.program_end|date:"Y-m-d" }}</td>
+                    <td class="p-5 text-center">
+                        <button type="button" onclick="document.getElementById('modalEditHadiah_{{ forloop.counter }}').classList.remove('hidden')" class="text-electric hover:text-cyan-300 mr-3 text-xs font-bold uppercase tracking-wider transition-colors">
+                            <i class="fa-solid fa-pen-to-square mr-1"></i>Edit
+                        </button>
+                        <form action="{% url 'hapus_hadiah' hadiah.kode_hadiah %}" method="POST" class="inline" onsubmit="return confirm('Yakin ingin menghapus hadiah ini?');">
+                            {% csrf_token %}
+                            <button type="submit" class="text-rose-400 hover:text-rose-300 text-xs font-bold uppercase tracking-wider transition-colors"><i class="fa-solid fa-trash mr-1"></i>Hapus</button>
+                        </form>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="6" class="p-8 text-center text-slate-600"><i class="fa-solid fa-gift text-2xl mb-2 block"></i>Belum ada hadiah.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div id="modalTambahHadiah" class="fixed inset-0 bg-black/60 backdrop-blur-sm hidden items-center justify-center z-50 p-4 flex">
+    <div class="bg-white rounded-xl shadow-2xl w-full max-w-2xl overflow-hidden">
+        <div class="p-4 flex justify-between items-center border-b border-slate-100">
+            <h3 class="text-lg font-bold text-slate-900">Tambah Hadiah Baru</h3>
+            <button onclick="document.getElementById('modalTambahHadiah').classList.add('hidden')" class="text-slate-400 hover:text-slate-600 transition-colors"><i class="fa-solid fa-xmark text-lg"></i></button>
+        </div>
+        <form action="{% url 'tambah_hadiah' %}" method="POST" class="p-6 space-y-4">
+            {% csrf_token %}
+            <div class="grid grid-cols-2 gap-4">
+                <div class="space-y-1">
+                    <label class="text-xs font-bold text-slate-900">Kode Hadiah</label>
+                    <input type="text" name="kode_hadiah" required class="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm text-slate-800 outline-none focus:border-blue-500 transition-all">
+                </div>
+                <div class="space-y-1">
+                    <label class="text-xs font-bold text-slate-900">Nama Hadiah</label>
+                    <input type="text" name="nama" required class="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm text-slate-800 outline-none focus:border-blue-500 transition-all">
+                </div>
+                <div class="space-y-1">
+                    <label class="text-xs font-bold text-slate-900">Penyedia</label>
+                    <select name="id_penyedia" required class="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm text-slate-800 outline-none focus:border-blue-500 transition-all">
+                        <option value="">Pilih Penyedia...</option>
+                        {% for p in penyedia_list %}
+                            <option value="{{ p.id }}">{{ p.nama_penyedia }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="space-y-1">
+                    <label class="text-xs font-bold text-slate-900">Miles Dibutuhkan</label>
+                    <input type="number" name="miles" required class="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm text-slate-800 outline-none focus:border-blue-500 transition-all">
+                </div>
+            </div>
+            <div class="space-y-1">
+                <label class="text-xs font-bold text-slate-900">Deskripsi</label>
+                <textarea name="deskripsi" rows="3" class="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm text-slate-800 outline-none focus:border-blue-500 transition-all"></textarea>
+            </div>
+            <div class="grid grid-cols-2 gap-4">
+                <div class="space-y-1">
+                    <label class="text-xs font-bold text-slate-900">Valid Start</label>
+                    <input type="date" name="valid_start_date" required class="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm text-slate-800 outline-none focus:border-blue-500 transition-all">
+                </div>
+                <div class="space-y-1">
+                    <label class="text-xs font-bold text-slate-900">Program End</label>
+                    <input type="date" name="program_end" required class="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm text-slate-800 outline-none focus:border-blue-500 transition-all">
+                </div>
+            </div>
+            <div class="flex justify-end pt-2">
+                <button type="submit" class="bg-[#003366] hover:bg-blue-900 text-white px-8 py-2 rounded-lg text-sm font-bold transition-all">Simpan</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+{% for hadiah in hadiah_list %}
+<div id="modalEditHadiah_{{ forloop.counter }}" class="fixed inset-0 bg-black/60 backdrop-blur-sm hidden items-center justify-center z-50 p-4 flex">
+    <div class="bg-white rounded-xl shadow-2xl w-full max-w-2xl overflow-hidden">
+        <div class="p-4 flex justify-between items-center border-b border-slate-100">
+            <h3 class="text-lg font-bold text-slate-900">Edit Hadiah</h3>
+            <button onclick="document.getElementById('modalEditHadiah_{{ forloop.counter }}').classList.add('hidden')" class="text-slate-400 hover:text-slate-600 transition-colors"><i class="fa-solid fa-xmark text-lg"></i></button>
+        </div>
+        <form action="{% url 'edit_hadiah' hadiah.kode_hadiah %}" method="POST" class="p-6 space-y-4">
+            {% csrf_token %}
+            <div class="grid grid-cols-2 gap-4">
+                <div class="space-y-1">
+                    <label class="text-xs font-bold text-slate-900">Kode Hadiah</label>
+                    <input type="text" value="{{ hadiah.kode_hadiah }}" disabled class="w-full px-4 py-2 bg-slate-100 border border-slate-200 rounded-lg text-sm text-slate-500 cursor-not-allowed">
+                </div>
+                <div class="space-y-1">
+                    <label class="text-xs font-bold text-slate-900">Nama Hadiah</label>
+                    <input type="text" name="nama" value="{{ hadiah.nama }}" required class="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm text-slate-800 outline-none focus:border-blue-500 transition-all">
+                </div>
+                <div class="space-y-1">
+                    <label class="text-xs font-bold text-slate-900">Penyedia</label>
+                    <select name="id_penyedia" required class="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm text-slate-800 outline-none focus:border-blue-500 transition-all">
+                        {% for p in penyedia_list %}
+                            <option value="{{ p.id }}" {% if p.id == hadiah.id_penyedia %}selected{% endif %}>{{ p.nama_penyedia }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="space-y-1">
+                    <label class="text-xs font-bold text-slate-900">Miles Dibutuhkan</label>
+                    <input type="number" name="miles" value="{{ hadiah.miles|floatformat:0 }}" required class="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm text-slate-800 outline-none focus:border-blue-500 transition-all">
+                </div>
+            </div>
+            <div class="space-y-1">
+                <label class="text-xs font-bold text-slate-900">Deskripsi</label>
+                <textarea name="deskripsi" rows="3" class="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm text-slate-800 outline-none focus:border-blue-500 transition-all">{{ hadiah.deskripsi }}</textarea>
+            </div>
+            <div class="grid grid-cols-2 gap-4">
+                <div class="space-y-1">
+                    <label class="text-xs font-bold text-slate-900">Valid Start</label>
+                    <input type="date" name="valid_start_date" value="{{ hadiah.valid_start_date|date:'Y-m-d' }}" required class="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm text-slate-800 outline-none focus:border-blue-500 transition-all">
+                </div>
+                <div class="space-y-1">
+                    <label class="text-xs font-bold text-slate-900">Program End</label>
+                    <input type="date" name="program_end" value="{{ hadiah.program_end|date:'Y-m-d' }}" required class="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm text-slate-800 outline-none focus:border-blue-500 transition-all">
+                </div>
+            </div>
+            <div class="flex justify-end pt-2">
+                <button type="submit" class="bg-[#003366] hover:bg-blue-900 text-white px-8 py-2 rounded-lg text-sm font-bold transition-all">Simpan</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endfor %}
+{% endblock %}

@@ -1,0 +1,112 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="p-8 max-w-[1400px] mx-auto">
+    {% include 'components/page_header.html' with title="Kelola Mitra" %}
+
+    {% if messages %}
+        {% for message in messages %}
+            <div class="bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 px-4 py-3 rounded-xl text-sm mb-4">{{ message }}</div>
+        {% endfor %}
+    {% endif %}
+
+    <div class="flex justify-end mb-6">
+        <button onclick="document.getElementById('modalTambahMitra').classList.remove('hidden')" class="bg-electric/10 hover:bg-electric/20 text-electric border border-electric/30 px-5 py-2.5 rounded-xl text-sm font-bold transition-all flex items-center">
+            <i class="fa-solid fa-plus mr-2"></i> Tambah Mitra
+        </button>
+    </div>
+
+    <div class="bg-white/5 border border-white/10 rounded-2xl overflow-hidden shadow-lg">
+        <table class="w-full text-left">
+            <thead>
+                <tr class="text-xs font-bold text-slate-500 uppercase tracking-wider border-b border-white/5">
+                    <th class="p-5">Email</th>
+                    <th class="p-5">ID Penyedia</th>
+                    <th class="p-5">Nama Mitra</th>
+                    <th class="p-5">Tanggal Kerja Sama</th>
+                    <th class="p-5 text-center">Aksi</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-white/5">
+                {% for mitra in mitra_list %}
+                <tr class="text-sm text-slate-300 hover:bg-white/5 transition-colors">
+                    <td class="p-5 text-electric font-mono text-xs">{{ mitra.email_mitra }}</td>
+                    <td class="p-5 text-slate-400 font-mono">{{ mitra.id_penyedia }}</td>
+                    <td class="p-5 font-bold text-white">{{ mitra.nama_mitra }}</td>
+                    <td class="p-5 text-slate-400 font-mono text-xs">{{ mitra.tanggal_kerja_sama|date:"Y-m-d" }}</td>
+                    <td class="p-5 text-center">
+                        <button type="button" onclick="document.getElementById('modalEditMitra_{{ forloop.counter }}').classList.remove('hidden')" class="text-electric hover:text-cyan-300 mr-3 text-xs font-bold uppercase tracking-wider transition-colors">
+                            <i class="fa-solid fa-pen-to-square mr-1"></i>Edit
+                        </button>
+                        <form action="{% url 'hapus_mitra' mitra.email_mitra %}" method="POST" class="inline" onsubmit="return confirm('Yakin ingin menghapus mitra ini? Hadiah terkait juga akan dihapus.');">
+                            {% csrf_token %}
+                            <button type="submit" class="text-rose-400 hover:text-rose-300 text-xs font-bold uppercase tracking-wider transition-colors"><i class="fa-solid fa-trash mr-1"></i>Hapus</button>
+                        </form>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="5" class="p-8 text-center text-slate-600"><i class="fa-solid fa-handshake text-2xl mb-2 block"></i>Belum ada mitra.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+
+<div id="modalTambahMitra" class="fixed inset-0 bg-black/60 backdrop-blur-sm hidden items-center justify-center z-50 p-4 flex">
+    <div class="bg-[#0d1b2a] border border-white/10 rounded-2xl shadow-2xl w-full max-w-md overflow-hidden">
+        <div class="p-6 flex justify-between items-center border-b border-white/5">
+            <h3 class="text-lg font-bold text-white">Tambah Mitra Baru</h3>
+            <button onclick="document.getElementById('modalTambahMitra').classList.add('hidden')" class="text-slate-500 hover:text-white transition-colors"><i class="fa-solid fa-xmark text-lg"></i></button>
+        </div>
+        <form action="{% url 'tambah_mitra' %}" method="POST" class="p-6 space-y-4">
+            {% csrf_token %}
+            <div>
+                <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Email Mitra</label>
+                <input type="email" name="email" required class="w-full px-4 py-2.5 bg-white/5 border border-white/10 rounded-xl text-sm text-white placeholder-slate-600 focus:ring-2 focus:ring-electric/50 outline-none transition-all">
+            </div>
+            <div>
+                <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Nama Mitra</label>
+                <input type="text" name="nama" required class="w-full px-4 py-2.5 bg-white/5 border border-white/10 rounded-xl text-sm text-white placeholder-slate-600 focus:ring-2 focus:ring-electric/50 outline-none transition-all">
+            </div>
+            <div>
+                <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Tanggal Kerja Sama</label>
+                <input type="date" name="tanggal" required class="w-full px-4 py-2.5 bg-white/5 border border-white/10 rounded-xl text-sm text-white focus:ring-2 focus:ring-electric/50 outline-none transition-all">
+            </div>
+            <div class="flex justify-end gap-3 pt-2">
+                <button type="button" onclick="document.getElementById('modalTambahMitra').classList.add('hidden')" class="px-5 py-2.5 bg-white/5 border border-white/10 text-slate-400 rounded-xl text-sm font-bold hover:bg-white/10 transition-all">Batal</button>
+                <button type="submit" class="px-5 py-2.5 bg-electric/10 hover:bg-electric/20 text-electric border border-electric/30 rounded-xl text-sm font-bold transition-all">Simpan</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+{% for mitra in mitra_list %}
+<div id="modalEditMitra_{{ forloop.counter }}" class="fixed inset-0 bg-black/60 backdrop-blur-sm hidden items-center justify-center z-50 p-4 flex">
+    <div class="bg-[#0d1b2a] border border-white/10 rounded-2xl shadow-2xl w-full max-w-md overflow-hidden">
+        <div class="p-6 flex justify-between items-center border-b border-white/5">
+            <h3 class="text-lg font-bold text-white">Edit Mitra</h3>
+            <button onclick="document.getElementById('modalEditMitra_{{ forloop.counter }}').classList.add('hidden')" class="text-slate-500 hover:text-white transition-colors"><i class="fa-solid fa-xmark text-lg"></i></button>
+        </div>
+        <form action="{% url 'edit_mitra' mitra.email_mitra %}" method="POST" class="p-6 space-y-4">
+            {% csrf_token %}
+            <div>
+                <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Email Mitra</label>
+                <input type="email" name="email" value="{{ mitra.email_mitra }}" readonly class="w-full px-4 py-2.5 bg-white/5 border border-white/10 rounded-xl text-sm text-slate-400 cursor-not-allowed focus:outline-none">
+            </div>
+            <div>
+                <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Nama Mitra</label>
+                <input type="text" name="nama" value="{{ mitra.nama_mitra }}" required class="w-full px-4 py-2.5 bg-white/5 border border-white/10 rounded-xl text-sm text-white placeholder-slate-600 focus:ring-2 focus:ring-electric/50 outline-none transition-all">
+            </div>
+            <div>
+                <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Tanggal Kerja Sama</label>
+                <input type="date" name="tanggal" value="{{ mitra.tanggal_kerja_sama|date:'Y-m-d' }}" required class="w-full px-4 py-2.5 bg-white/5 border border-white/10 rounded-xl text-sm text-white focus:ring-2 focus:ring-electric/50 outline-none transition-all">
+            </div>
+            <div class="flex justify-end gap-3 pt-2">
+                <button type="button" onclick="document.getElementById('modalEditMitra_{{ forloop.counter }}').classList.add('hidden')" class="px-5 py-2.5 bg-white/5 border border-white/10 text-slate-400 rounded-xl text-sm font-bold hover:bg-white/10 transition-all">Batal</button>
+                <button type="submit" class="px-5 py-2.5 bg-electric/10 hover:bg-electric/20 text-electric border border-electric/30 rounded-xl text-sm font-bold transition-all">Update Data</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endfor %}
+{% endblock %}

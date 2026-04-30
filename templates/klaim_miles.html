@@ -1,0 +1,296 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="p-6">
+    <div class="flex justify-between items-center mb-6">
+        <div>
+            <h1 class="text-2xl font-bold text-white">Klaim Missing Miles</h1>
+            <p class="text-slate-400 text-sm">Ajukan klaim untuk penerbangan yang belum tercatat.</p>
+        </div>
+        <button onclick="toggleModal('modal-klaim')" class="bg-electric hover:bg-blue-600 text-white px-4 py-2 rounded-lg font-medium transition-all flex items-center">
+            <i class="fa-solid fa-plus mr-2"></i> Ajukan Klaim
+        </button>
+    </div>
+
+    <div class="flex space-x-2 mb-6" id="filter-buttons">
+        <button onclick="filterTable('Semua', this)" class="filter-btn px-4 py-1.5 rounded-full bg-electric text-white text-sm font-medium">Semua</button>
+        <button onclick="filterTable('Menunggu', this)" class="filter-btn px-4 py-1.5 rounded-full bg-white/5 text-slate-400 hover:bg-white/10 text-sm font-medium transition-all">Menunggu</button>
+        <button onclick="filterTable('Disetujui', this)" class="filter-btn px-4 py-1.5 rounded-full bg-white/5 text-slate-400 hover:bg-white/10 text-sm font-medium transition-all">Disetujui</button>
+        <button onclick="filterTable('Ditolak', this)" class="filter-btn px-4 py-1.5 rounded-full bg-white/5 text-slate-400 hover:bg-white/10 text-sm font-medium transition-all">Ditolak</button>
+    </div>
+
+    <div class="bg-slate-900/50 border border-white/10 rounded-xl overflow-hidden">
+        <table class="w-full text-left border-collapse" id="klaim-table">
+            <thead>
+                <tr class="border-b border-white/10 bg-white/5">
+                    <th class="p-4 text-xs font-semibold text-slate-400 uppercase">No. Klaim</th>
+                    <th class="p-4 text-xs font-semibold text-slate-400 uppercase">Maskapai</th>
+                    <th class="p-4 text-xs font-semibold text-slate-400 uppercase">Rute</th>
+                    <th class="p-4 text-xs font-semibold text-slate-400 uppercase">Tanggal</th>
+                    <th class="p-4 text-xs font-semibold text-slate-400 uppercase">Flight</th>
+                    <th class="p-4 text-xs font-semibold text-slate-400 uppercase">Kelas</th>
+                    <th class="p-4 text-xs font-semibold text-slate-400 uppercase">Status</th>
+                    <th class="p-4 text-xs font-semibold text-slate-400 uppercase text-center">Aksi</th>
+                </tr>
+            </thead>
+            <tbody class="text-slate-300 divide-y divide-white/5">
+                {% for k in klaim_list %}
+                <tr class="klaim-row hover:bg-white/[0.02] transition-colors" data-status="{{ k.status_penerimaan }}">
+                    <td class="p-4 font-mono text-sm">CLM-00{{ k.id }}</td>
+                    <td class="p-4 text-sm">{{ k.maskapai }}</td>
+                    <td class="p-4 text-sm">{{ k.bandara_asal }} → {{ k.bandara_tujuan }}</td>
+                    <td class="p-4 text-sm">{{ k.tanggal_penerbangan }}</td>
+                    <td class="p-4 text-sm">{{ k.flight_number }}</td>
+                    <td class="p-4 text-sm">{{ k.kelas_kabin }}</td>
+                    <td class="p-4">
+                        {% if k.status_penerimaan == 'Disetujui' %}
+                        <span class="px-2 py-1 rounded-md bg-emerald-500/10 text-emerald-500 text-xs font-bold uppercase tracking-wider border border-emerald-500/20">Disetujui</span>
+                        {% elif k.status_penerimaan == 'Menunggu' %}
+                        <span class="px-2 py-1 rounded-md bg-amber-500/10 text-amber-500 text-xs font-bold uppercase tracking-wider border border-amber-500/20">Menunggu</span>
+                        {% else %}
+                        <span class="px-2 py-1 rounded-md bg-rose-500/10 text-rose-500 text-xs font-bold uppercase tracking-wider border border-rose-500/20">Ditolak</span>
+                        {% endif %}
+                    </td>
+                    <td class="p-4 text-center">
+                        {% if k.status_penerimaan == 'Menunggu' %}
+                        <div class="flex justify-center space-x-2">
+                            <button 
+                                onclick="handleEdit(this)"
+                                data-id="{{ k.id }}"
+                                data-maskapai="{{ k.maskapai|escapejs }}"
+                                data-asal="{{ k.bandara_asal|escapejs }}"
+                                data-tujuan="{{ k.bandara_tujuan|escapejs }}"
+                                data-tanggal="{{ k.tanggal_penerbangan|date:'Y-m-d' }}"
+                                data-flight="{{ k.flight_number|escapejs }}"
+                                data-kelas="{{ k.kelas_kabin|escapejs }}"
+                                data-tiket="{{ k.nomor_tiket|escapejs }}"
+                                data-pnr="{{ k.pnr|escapejs }}"
+                                class="p-2 text-slate-400 hover:text-electric transition-colors">
+                                <i class="fa-solid fa-pen"></i>
+                            </button>
+
+                            <button 
+                                onclick="confirmDelete('{{ k.id }}')" 
+                                class="p-2 text-slate-400 hover:text-rose-500 transition-colors">
+                                <i class="fa-solid fa-trash"></i>
+                            </button>
+                        </div>
+                        {% else %}
+                        <span class="text-slate-600 text-xs">Selesai</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div id="modal-klaim" class="hidden fixed inset-0 z-50 overflow-y-auto bg-black/60 backdrop-blur-sm">
+    <div class="flex items-center justify-center min-h-screen p-4">
+        <div class="bg-slate-900 border border-white/10 rounded-2xl w-full max-w-2xl shadow-2xl">
+            <div class="p-6 border-b border-white/10 flex justify-between items-center">
+                <h3 class="text-xl font-bold text-white">Ajukan Klaim Baru</h3>
+                <button onclick="toggleModal('modal-klaim')" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark text-xl"></i></button>
+            </div>
+            <form action="{% url 'ajukan_klaim' %}" method="POST" class="p-6">
+                {% csrf_token %}
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-slate-400 mb-2">Maskapai</label>
+                        <select name="maskapai" class="w-full bg-slate-800 border border-white/10 rounded-lg px-4 py-2.5 text-white cursor-pointer">
+                            <option value="Garuda Indonesia">Garuda Indonesia</option>
+                            <option value="Singapore Airlines">Singapore Airlines</option>
+                            <option value="Qatar Airways">Qatar Airways</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-slate-400 mb-2">Kelas Kabin</label>
+                        <select name="kelas_kabin" class="w-full bg-slate-800 border border-white/10 rounded-lg px-4 py-2.5 text-white cursor-pointer">
+                            <option value="Economy">Economy</option>
+                            <option value="Business">Business</option>
+                            <option value="First Class">First Class</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-slate-400 mb-2">Bandara Asal</label>
+                        <select name="bandara_asal" class="w-full bg-slate-800 border border-white/10 rounded-lg px-4 py-2.5 text-white cursor-pointer">
+                            <option value="CGK">Soekarno-Hatta (CGK)</option>
+                            <option value="SIN">Changi (SIN)</option>
+                            <option value="DPS">Ngurah Rai (DPS)</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-slate-400 mb-2">Bandara Tujuan</label>
+                        <select name="bandara_tujuan" class="w-full bg-slate-800 border border-white/10 rounded-lg px-4 py-2.5 text-white cursor-pointer">
+                            <option value="CGK">Soekarno-Hatta (CGK)</option>
+                            <option value="SIN">Changi (SIN)</option>
+                            <option value="DPS">Ngurah Rai (DPS)</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-slate-400 mb-2">Tanggal Penerbangan</label>
+                        <input type="date" name="tanggal_penerbangan" class="w-full bg-slate-800 border border-white/10 rounded-lg px-4 py-2.5 text-white">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-slate-400 mb-2">Flight Number</label>
+                        <input type="text" name="flight_number" placeholder="Contoh: GA123" class="w-full bg-slate-800 border border-white/10 rounded-lg px-4 py-2.5 text-white">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-slate-400 mb-2">Nomor Tiket</label>
+                        <input type="text" name="nomor_tiket" placeholder="13 Digit" class="w-full bg-slate-800 border border-white/10 rounded-lg px-4 py-2.5 text-white">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-slate-400 mb-2">PNR</label>
+                        <input type="text" name="pnr" placeholder="6 Digit" class="w-full bg-slate-800 border border-white/10 rounded-lg px-4 py-2.5 text-white">
+                    </div>
+                </div>
+                <div class="mt-8 flex justify-end space-x-3">
+                    <button type="button" onclick="toggleModal('modal-klaim')" class="px-6 py-2.5 rounded-lg text-slate-400 hover:bg-white/5">Batal</button>
+                    <button type="submit" class="bg-electric px-8 py-2.5 rounded-lg text-white font-bold transition-all shadow-lg shadow-blue-900/20">Ajukan</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div id="modal-edit" class="hidden fixed inset-0 z-50 overflow-y-auto bg-black/60 backdrop-blur-sm">
+    <div class="flex items-center justify-center min-h-screen p-4">
+        <div class="bg-slate-900 border border-white/10 rounded-2xl w-full max-w-2xl shadow-2xl">
+            <div class="p-6 border-b border-white/10 flex justify-between items-center">
+                <h3 class="text-xl font-bold text-white">Edit Klaim <span id="edit-clm-id" class="text-electric"></span></h3>
+                <button onclick="toggleModal('modal-edit')" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark text-xl"></i></button>
+            </div>
+            <form id="form-edit" method="POST" class="p-6">
+                {% csrf_token %}
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-slate-400 mb-2">Maskapai</label>
+                        <select id="edit-maskapai" name="maskapai" class="w-full bg-slate-800 border border-white/10 rounded-lg px-4 py-2.5 text-white">
+                            <option value="Garuda Indonesia">Garuda Indonesia</option>
+                            <option value="Singapore Airlines">Singapore Airlines</option>
+                            <option value="Qatar Airways">Qatar Airways</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-slate-400 mb-2">Kelas Kabin</label>
+                        <select id="edit-kelas" name="kelas_kabin" class="w-full bg-slate-800 border border-white/10 rounded-lg px-4 py-2.5 text-white">
+                            <option value="Economy">Economy</option>
+                            <option value="Business">Business</option>
+                            <option value="First Class">First Class</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-slate-400 mb-2">Bandara Asal</label>
+                        <select id="edit-asal" name="bandara_asal" class="w-full bg-slate-800 border border-white/10 rounded-lg px-4 py-2.5 text-white">
+                            <option value="CGK">Soekarno-Hatta (CGK)</option>
+                            <option value="SIN">Changi (SIN)</option>
+                            <option value="DPS">Ngurah Rai (DPS)</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-slate-400 mb-2">Bandara Tujuan</label>
+                        <select id="edit-tujuan" name="bandara_tujuan" class="w-full bg-slate-800 border border-white/10 rounded-lg px-4 py-2.5 text-white">
+                            <option value="CGK">Soekarno-Hatta (CGK)</option>
+                            <option value="SIN">Changi (SIN)</option>
+                            <option value="DPS">Ngurah Rai (DPS)</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-slate-400 mb-2">Tanggal Penerbangan</label>
+                        <input type="date" id="edit-tanggal" name="tanggal_penerbangan" class="w-full bg-slate-800 border border-white/10 rounded-lg px-4 py-2.5 text-white">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-slate-400 mb-2">Flight Number</label>
+                        <input type="text" id="edit-flight" name="flight_number" class="w-full bg-slate-800 border border-white/10 rounded-lg px-4 py-2.5 text-white">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-slate-400 mb-2">Nomor Tiket</label>
+                        <input type="text" id="edit-tiket" name="nomor_tiket" class="w-full bg-slate-800 border border-white/10 rounded-lg px-4 py-2.5 text-white">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-slate-400 mb-2">PNR</label>
+                        <input type="text" id="edit-pnr" name="pnr" class="w-full bg-slate-800 border border-white/10 rounded-lg px-4 py-2.5 text-white">
+                    </div>
+                </div>
+                <div class="mt-8 flex justify-end space-x-3">
+                    <button type="button" onclick="toggleModal('modal-edit')" class="px-6 py-2.5 rounded-lg text-slate-400">Batal</button>
+                    <button type="submit" class="bg-emerald-600 px-8 py-2.5 rounded-lg text-white font-bold">Simpan Perubahan</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    function filterTable(status, btn) {
+        const rows = document.querySelectorAll('.klaim-row');
+        const buttons = document.querySelectorAll('.filter-btn');
+        
+        buttons.forEach(b => {
+            b.classList.remove('bg-electric', 'text-white');
+            b.classList.add('bg-white/5', 'text-slate-400');
+        });
+        btn.classList.add('bg-electric', 'text-white');
+
+        rows.forEach(row => {
+            if (status === 'Semua' || row.getAttribute('data-status') === status) {
+                row.style.display = '';
+            } else {
+                row.style.display = 'none';
+            }
+        });
+    }
+
+    function toggleModal(id) {
+        document.getElementById(id).classList.toggle('hidden');
+    }
+
+    function openEditModal(id, maskapai, asal, tujuan, tanggal, flight, kelas, tiket, pnr) {
+        document.getElementById('edit-clm-id').innerText = "#" + id;
+        document.getElementById('edit-maskapai').value = maskapai;
+        document.getElementById('edit-asal').value = asal;
+        document.getElementById('edit-tujuan').value = tujuan;
+        document.getElementById('edit-tanggal').value = tanggal;
+        document.getElementById('edit-flight').value = flight;
+        document.getElementById('edit-kelas').value = kelas;
+        document.getElementById('edit-tiket').value = tiket;
+        document.getElementById('edit-pnr').value = pnr;
+        
+        document.getElementById('form-edit').action = "/klaim-miles/edit/" + id + "/";
+        
+        toggleModal('modal-edit');
+    }
+
+    function confirmDelete(id) {
+        if (confirm("Batalkan pengajuan klaim #" + id + "?")) {
+            window.location.href = `/klaim-miles/hapus/${id}/`;
+        }
+    }
+
+    function handleEdit(el) {
+        openEditModal(
+            el.dataset.id,
+            el.dataset.maskapai,
+            el.dataset.asal,
+            el.dataset.tujuan,
+            el.dataset.tanggal,
+            el.dataset.flight,
+            el.dataset.kelas,
+            el.dataset.tiket,
+            el.dataset.pnr
+        );
+    }
+</script>
+
+<style>
+    input[type="date"]::-webkit-calendar-picker-indicator {
+        filter: invert(1);
+        opacity: 0.6;
+    }
+    select option {
+        background-color: #1e293b;
+        color: white;
+    }
+</style>
+{% endblock %}

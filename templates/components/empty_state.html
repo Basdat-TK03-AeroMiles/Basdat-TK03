@@ -1,0 +1,12 @@
+{% comment %}Reusable empty state. Pass: icon (default fa-box-open), text, colspan (for table rows){% endcomment %}
+{% if colspan %}
+<td colspan="{{ colspan }}" class="py-10 text-center text-slate-500">
+    <i class="fa-solid {{ icon|default:'fa-box-open' }} text-4xl mb-4 opacity-50 block"></i>
+    {{ text|default:"Tidak ada data." }}
+</td>
+{% else %}
+<div class="col-span-full py-12 text-center text-slate-500 bg-white/5 rounded-2xl border border-white/10">
+    <i class="fa-solid {{ icon|default:'fa-box-open' }} text-4xl mb-4 opacity-50"></i>
+    <p>{{ text|default:"Tidak ada data." }}</p>
+</div>
+{% endif %}

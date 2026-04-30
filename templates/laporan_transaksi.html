@@ -1,0 +1,122 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="p-8 max-w-[1400px] mx-auto">
+    {% include 'components/page_header.html' with title="Laporan & Riwayat Transaksi Miles" subtitle="Rekap seluruh transaksi miles: Transfer, Redeem, Pembelian Package, dan Klaim yang Disetujui." %}
+
+    {% include 'components/messages.html' %}
+
+    <!-- Ringkasan Statistik -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        <div class="bg-white/5 border border-white/10 rounded-2xl p-6 shadow-lg">
+            <div class="text-xs text-slate-500 uppercase tracking-widest mb-2">Total Miles Beredar</div>
+            <div class="text-3xl font-extrabold text-electric">{{ stats.total_miles_beredar }}</div>
+            <div class="text-xs text-slate-500 mt-1">Dimiliki seluruh member</div>
+        </div>
+        <div class="bg-white/5 border border-white/10 rounded-2xl p-6 shadow-lg">
+            <div class="text-xs text-slate-500 uppercase tracking-widest mb-2">Total Redeem Bulan Ini</div>
+            <div class="text-3xl font-extrabold text-amber-400">{{ stats.redeem_bulan_ini }}</div>
+            <div class="text-xs text-slate-500 mt-1">Transaksi redeem</div>
+        </div>
+        <div class="bg-white/5 border border-white/10 rounded-2xl p-6 shadow-lg">
+            <div class="text-xs text-slate-500 uppercase tracking-widest mb-2">Total Klaim Disetujui</div>
+            <div class="text-3xl font-extrabold text-emerald-400">{{ stats.klaim_disetujui }}</div>
+            <div class="text-xs text-slate-500 mt-1">Sepanjang waktu</div>
+        </div>
+    </div>
+
+    <!-- Filter -->
+    <div class="bg-white/5 border border-white/10 rounded-2xl p-6 mb-8 shadow-lg">
+        <form method="GET" action="{% url 'laporan_transaksi' %}" class="grid grid-cols-1 md:grid-cols-5 gap-4 items-end">
+            <div>
+                <label class="text-xs text-slate-400 uppercase tracking-widest block mb-2">Tipe Transaksi</label>
+                <select name="jenis" class="w-full bg-white/5 border border-white/10 text-white text-sm rounded-lg px-4 py-2.5 focus:border-electric focus:outline-none">
+                    <option value="">Semua</option>
+                    <option value="redeem" {% if filter_jenis == 'redeem' %}selected{% endif %}>Redeem</option>
+                    <option value="package" {% if filter_jenis == 'package' %}selected{% endif %}>Beli Paket</option>
+                    <option value="transfer" {% if filter_jenis == 'transfer' %}selected{% endif %}>Transfer</option>
+                    <option value="klaim" {% if filter_jenis == 'klaim' %}selected{% endif %}>Klaim Disetujui</option>
+                </select>
+            </div>
+            <div>
+                <label class="text-xs text-slate-400 uppercase tracking-widest block mb-2">Member (Email)</label>
+                <input type="text" name="email" value="{{ filter_email }}" placeholder="cari email..." class="w-full bg-white/5 border border-white/10 text-white text-sm rounded-lg px-4 py-2.5 focus:border-electric focus:outline-none placeholder-slate-600">
+            </div>
+            <div>
+                <label class="text-xs text-slate-400 uppercase tracking-widest block mb-2">Dari Tanggal</label>
+                <input type="date" name="dari" value="{{ filter_dari }}" class="w-full bg-white/5 border border-white/10 text-white text-sm rounded-lg px-4 py-2.5 focus:border-electric focus:outline-none">
+            </div>
+            <div>
+                <label class="text-xs text-slate-400 uppercase tracking-widest block mb-2">Sampai Tanggal</label>
+                <input type="date" name="sampai" value="{{ filter_sampai }}" class="w-full bg-white/5 border border-white/10 text-white text-sm rounded-lg px-4 py-2.5 focus:border-electric focus:outline-none">
+            </div>
+            <div class="flex gap-2">
+                <button type="submit" class="bg-electric/10 hover:bg-electric text-electric hover:text-dsn font-bold py-2.5 px-5 rounded-lg transition-all duration-300 uppercase tracking-widest text-xs border border-electric/30 hover:border-transparent">
+                    <i class="fa-solid fa-filter mr-1"></i> Filter
+                </button>
+                <a href="{% url 'laporan_transaksi' %}" class="bg-white/5 hover:bg-white/10 text-slate-400 font-bold py-2.5 px-4 rounded-lg transition-all text-xs border border-white/10 flex items-center">
+                    <i class="fa-solid fa-xmark"></i>
+                </a>
+            </div>
+        </form>
+    </div>
+
+    <!-- Tabel Transaksi -->
+    <div class="bg-white/5 border border-white/10 rounded-2xl overflow-hidden shadow-2xl backdrop-blur-md mb-10">
+        <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse min-w-max">
+                <thead>
+                    <tr class="bg-dsn/80 border-b border-white/10 text-xs uppercase tracking-widest text-slate-400">
+                        <th class="py-4 px-6 font-bold">Waktu</th>
+                        <th class="py-4 px-6 font-bold">Tipe</th>
+                        <th class="py-4 px-6 font-bold">Member</th>
+                        <th class="py-4 px-6 font-bold">Deskripsi</th>
+                        <th class="py-4 px-6 font-bold text-right">Jumlah Miles</th>
+                        <th class="py-4 px-6 font-bold text-center">Aksi</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-white/5 text-sm">
+                    {% for t in transaksi_list %}
+                    <tr class="hover:bg-white/5 transition-colors group">
+                        <td class="py-4 px-6 text-slate-300 font-mono text-xs">{{ t.timestamp|date:"Y-m-d H:i:s" }}</td>
+                        <td class="py-4 px-6">
+                            {% if t.jenis == 'redeem' %}
+                                <span class="bg-amber-900/30 text-amber-400 border border-amber-500/30 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider">Redeem</span>
+                            {% elif t.jenis == 'package' %}
+                                <span class="bg-emerald-900/30 text-emerald-400 border border-emerald-500/30 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider">Package</span>
+                            {% elif t.jenis == 'transfer' %}
+                                <span class="bg-blue-900/30 text-blue-400 border border-blue-500/30 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider">Transfer</span>
+                            {% elif t.jenis == 'klaim' %}
+                                <span class="bg-violet-900/30 text-violet-400 border border-violet-500/30 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider">Klaim</span>
+                            {% endif %}
+                        </td>
+                        <td class="py-4 px-6 text-slate-400 font-mono text-xs">{{ t.email_member }}</td>
+                        <td class="py-4 px-6 text-white text-xs">{{ t.deskripsi }}</td>
+                        <td class="py-4 px-6 text-right font-mono text-electric font-bold">{{ t.jumlah_miles }}</td>
+                        <td class="py-4 px-6 text-center">
+                            {% if t.jenis == 'klaim' %}
+                                <span class="text-xs text-slate-600 italic">Tidak bisa dihapus</span>
+                            {% else %}
+                                <a href="{% url 'hapus_transaksi' t.jenis t.id1 t.id2 t.id3 %}" onclick="return confirm('PERINGATAN: Penghapusan riwayat transaksi bersifat PERMANEN dan akan memengaruhi tampilan Member. Lanjutkan?');" class="bg-rose-950/40 hover:bg-rose-900 border border-rose-900/50 text-rose-400 hover:text-white px-3 py-1.5 rounded-lg text-xs font-bold uppercase tracking-widest transition-colors inline-block">
+                                    <i class="fa-solid fa-trash-can mr-1"></i> Hapus
+                                </a>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>{% include 'components/empty_state.html' with colspan=6 text="Tidak ada data transaksi." %}</tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Top Member -->
+    <h2 class="text-xl font-bold text-white mb-4 uppercase tracking-widest">Top Member</h2>
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        {% include 'components/top_member_card.html' with title="Total Miles Tertinggi" icon="fa-solid fa-trophy" color="text-electric" items=top_miles value_field="total_miles" show_email=True %}
+        {% include 'components/top_member_card.html' with title="Paling Aktif Redeem" icon="fa-solid fa-gift" color="text-amber-400" items=top_redeem value_field="jumlah" suffix="x" %}
+        {% include 'components/top_member_card.html' with title="Paling Aktif Transfer" icon="fa-solid fa-exchange-alt" color="text-blue-400" items=top_transfer value_field="jumlah" suffix="x" %}
+    </div>
+</div>
+{% endblock %}
