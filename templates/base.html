@@ -64,22 +64,22 @@
                     {% if request.session.role == 'member' %}
                         {% include 'components/nav_link.html' with url='/dashboard/' icon='fa-solid fa-border-all' label='Dashboard' %}
                         {% include 'components/nav_link.html' with url='/member/identitas/' icon='fa-regular fa-id-card' label='Identitas Saya' %}
-                        {% include 'components/nav_link.html' with url='#' icon='fa-solid fa-plane-circle-check' label='Klaim Miles' %}
-                        {% include 'components/nav_link.html' with url='#' icon='fa-solid fa-exchange-alt' label='Transfer Miles' %}
+                        {% include 'components/nav_link.html' with url='/klaim-miles/' icon='fa-solid fa-plane-circle-check' label='Klaim Miles' %}
+                        {% include 'components/nav_link.html' with url='/transfer-miles/' icon='fa-solid fa-exchange-alt' label='Transfer Miles' %}
                         {% include 'components/nav_link.html' with url='/member/redeem/' icon='fa-solid fa-gift' label='Redeem Hadiah' %}
                         {% include 'components/nav_link.html' with url='/member/package/' icon='fa-solid fa-coins' label='Beli Package' %}
                         {% include 'components/nav_link.html' with url='/member/tier/' icon='fa-solid fa-ranking-star' label='Info Tier' %}
-                        {% include 'components/nav_link.html' with url='#' icon='fa-solid fa-user-gear' label='Pengaturan Profil' %}
+                        {% include 'components/nav_link.html' with url='/pengaturan-profil/' icon='fa-solid fa-user-gear' label='Pengaturan Profil' %}
                         {% include 'components/nav_link.html' with url='/logout/' icon='fa-solid fa-arrow-right-from-bracket' label='Logout' is_logout=True %}
 
                     {% elif request.session.role == 'staf' %}
                         {% include 'components/nav_link.html' with url='/dashboard/' icon='fa-solid fa-border-all' label='Dashboard' %}
                         {% include 'components/nav_link.html' with url='/staf/member/' icon='fa-solid fa-users' label='Kelola Member' %}
-                        {% include 'components/nav_link.html' with url='#' icon='fa-solid fa-file-circle-check' label='Kelola Klaim' %}
+                        {% include 'components/nav_link.html' with url='/staf/kelola-klaim/' icon='fa-solid fa-file-circle-check' label='Kelola Klaim' %}
                         {% include 'components/nav_link.html' with url='/staf/hadiah/' icon='fa-solid fa-gifts' label='Kelola Hadiah & Penyedia' %}
                         {% include 'components/nav_link.html' with url='/staf/mitra/' icon='fa-solid fa-handshake' label='Kelola Mitra' %}
                         {% include 'components/nav_link.html' with url='/staf/transaksi/' icon='fa-solid fa-file-invoice-dollar' label='Laporan Transaksi' %}
-                        {% include 'components/nav_link.html' with url='#' icon='fa-solid fa-user-gear' label='Pengaturan Profil' %}
+                        {% include 'components/nav_link.html' with url='/pengaturan-profil/' icon='fa-solid fa-user-gear' label='Pengaturan Profil' %}
                         {% include 'components/nav_link.html' with url='/logout/' icon='fa-solid fa-arrow-right-from-bracket' label='Logout' is_logout=True %}
 
                     {% else %}
