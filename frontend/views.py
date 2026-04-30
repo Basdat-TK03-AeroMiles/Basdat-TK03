@@ -204,3 +204,42 @@ def form_member_view(request):
         messages.success(request, 'Data member berhasil diperbarui!')
         return redirect('manajemen_member')
     return render(request, 'form_member.html')
+
+def pengaturan_profil_view(request):
+    role = request.session.get('role')
+    name = request.session.get('name')
+    
+    if not role:
+        return redirect('login')
+
+    profile_data = {
+        'email': 'member@aeromiles.com' if role == 'member' else 'admin@aeromiles.com',
+        'salutation': 'Mr.',
+        'first_name': 'John William' if role == 'member' else 'Admin',
+        'last_name': 'Doe' if role == 'member' else 'Aero',
+        'country_code': '+62',
+        'phone': '81234567890',
+        'nationality': 'Indonesia',
+        'birth_date': '1995-01-01',
+    }
+
+    if role == 'member':
+        profile_data.update({
+            'nomor_member': 'M0001',
+            'tgl_bergabung': '2024-01-15'
+        })
+    else:
+        profile_data.update({
+            'id_staf': 'S001',
+            'maskapai': 'GIAA'
+        })
+
+    if request.method == 'POST':
+        messages.success(request, 'Profil berhasil diperbarui!')
+        return redirect('pengaturan_profil')
+
+    return render(request, 'pengaturan_profil.html', {
+        'role': role, 
+        'name': name, 
+        'profile': profile_data
+    })

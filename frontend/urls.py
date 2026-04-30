@@ -21,4 +21,6 @@ urlpatterns = [
     path('staf/hadiah/tambah/', views.tambah_hadiah, name='tambah_hadiah'),
     path('staf/hadiah/edit/<str:kode_hadiah>/', views.edit_hadiah, name='edit_hadiah'),
     path('staf/hadiah/hapus/<str:kode_hadiah>/', views.hapus_hadiah, name='hapus_hadiah'),
+
+    path('pengaturan-profil/', views.pengaturan_profil_view, name='pengaturan_profil'),
 ]
