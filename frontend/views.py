@@ -243,3 +243,148 @@ def pengaturan_profil_view(request):
         'name': name, 
         'profile': profile_data
     })
+
+def klaim_miles_view(request):
+    role = request.session.get('role')
+    if role != 'member':
+        return redirect('dashboard')
+
+    klaim_list = [
+        {
+            'id': 1,
+            'maskapai': 'GA',
+            'bandara_asal': 'CGK',
+            'bandara_tujuan': 'DPS',
+            'tanggal_penerbangan': datetime.date(2024, 10, 1),
+            'flight_number': 'GA404',
+            'kelas_kabin': 'Business',
+            'status_penerimaan': 'Disetujui',
+            'timestamp': '2024-10-05 18:45:00'
+        },
+        {
+            'id': 2,
+            'maskapai': 'SQ',
+            'bandara_asal': 'SIN',
+            'bandara_tujuan': 'NRT',
+            'tanggal_penerbangan': datetime.date(2024, 11, 15),
+            'flight_number': 'SQ12',
+            'kelas_kabin': 'Economy',
+            'status_penerimaan': 'Menunggu',
+            'timestamp': '2024-11-20 18:45:00'
+        },
+    ]
+
+    context = {
+        'role': role,
+        'name': request.session.get('name'),
+        'klaim_list': klaim_list,
+        'maskapai_choices': ['GA', 'SQ', 'MH'],
+        'bandara_choices': ['CGK', 'SIN', 'DPS', 'NRT'],
+        'kelas_choices': ['Economy', 'Business', 'First']
+    }
+    return render(request, 'klaim_miles.html', context)
+
+def ajukan_klaim(request):
+    if request.method == 'POST':
+        messages.success(request, 'Klaim berhasil diajukan!')
+    return redirect('klaim_miles')
+
+def edit_klaim(request, id):
+    if request.method == 'POST':
+        messages.success(request, f'Klaim ID {id} berhasil diupdate!')
+    return redirect('klaim_miles')
+
+def batalkan_klaim(request, id):
+    messages.success(request, f'Klaim ID {id} berhasil dihapus!')
+    return redirect('klaim_miles')
+
+def kelola_klaim_staf(request):
+    role = request.session.get('role')
+    if role != 'staf':
+        return redirect('dashboard')
+
+    klaim_staf_list = [
+        {
+            'id': 1,
+            'nama_member': 'John W. Doe',
+            'email_member': 'member@aeromiles.com',
+            'maskapai': 'GA',
+            'rute': 'CGK → DPS',
+            'tanggal': '2024-10-01',
+            'flight': 'GA404',
+            'kelas': 'Business',
+            'tanggal_pengajuan': '2024-10-05 18:45:00',
+            'status': 'Disetujui'
+        },
+        {
+            'id': 2,
+            'nama_member': 'John W. Doe',
+            'email_member': 'member@aeromiles.com',
+            'maskapai': 'SQ',
+            'rute': 'SIN → NRT',
+            'tanggal': '2024-11-15',
+            'flight': 'SQ12',
+            'kelas': 'Economy',
+            'tanggal_pengajuan': '2024-11-20 18:45:00',
+            'status': 'Menunggu'
+        },
+        {
+            'id': 3,
+            'nama_member': 'Jane Smith',
+            'email_member': 'jane@example.com',
+            'maskapai': 'GA',
+            'rute': 'CGK → SUB',
+            'tanggal': '2024-12-01',
+            'flight': 'GA310',
+            'kelas': 'Economy',
+            'tanggal_pengajuan': '2024-12-05 18:45:00',
+            'status': 'Menunggu'
+        }
+    ]
+
+    return render(request, 'kelola_klaim_staf.html', {'klaim_list': klaim_staf_list})
+
+def setujui_klaim(request, pk):
+    if request.method == 'POST':
+        messages.success(request, f'Klaim CLM-00{pk} berhasil disetujui. Miles telah ditambahkan ke member.')
+    return redirect('kelola_klaim_staf')
+
+def tolak_klaim(request, pk):
+    if request.method == 'POST':
+        messages.error(request, f'Klaim CLM-00{pk} telah ditolak.')
+    return redirect('kelola_klaim_staf')
+
+def transfer_miles(request):
+    riwayat_transfer = [
+        {
+            'waktu': '2025-01-15 10:30',
+            'nama_member': 'Jane Smith',
+            'email_member': 'jane@example.com',
+            'jumlah': -5000,
+            'catatan': 'Hadiah ulang tahun',
+            'tipe': 'Kirim'
+        },
+        {
+            'waktu': '2025-02-01 14:00',
+            'nama_member': 'Budi A. Santoso',
+            'email_member': 'budi@example.com',
+            'jumlah': 2000,
+            'catatan': '-',
+            'tipe': 'Terima'
+        }
+    ]
+    
+    context = {
+        'riwayat_transfer': riwayat_transfer,
+        'award_miles_tersedia': "32,000"
+    }
+    return render(request, 'transfer_miles.html', context)
+
+def proses_transfer(request):
+    if request.method == 'POST':
+        email = request.POST.get('email_penerima')
+        jumlah = request.POST.get('jumlah_miles')
+        
+        messages.success(request, f'Berhasil mengirim {jumlah} miles ke {email}!')
+        
+    return redirect('transfer_miles')

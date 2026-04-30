@@ -23,4 +23,15 @@ urlpatterns = [
     path('staf/hadiah/hapus/<str:kode_hadiah>/', views.hapus_hadiah, name='hapus_hadiah'),
 
     path('pengaturan-profil/', views.pengaturan_profil_view, name='pengaturan_profil'),
+    path('klaim-miles/', views.klaim_miles_view, name='klaim_miles'),
+    path('klaim-miles/tambah/', views.ajukan_klaim, name='ajukan_klaim'),
+    path('klaim-miles/edit/<int:id>/', views.edit_klaim, name='edit_klaim'),
+    path('klaim-miles/hapus/<int:id>/', views.batalkan_klaim, name='batalkan_klaim'),
+
+    path('staf/kelola-klaim/', views.kelola_klaim_staf, name='kelola_klaim_staf'),
+    path('staf/klaim/setujui/<int:pk>/', views.setujui_klaim, name='setujui_klaim'),
+    path('staf/klaim/tolak/<int:pk>/', views.tolak_klaim, name='tolak_klaim'),
+
+    path('transfer-miles/', views.transfer_miles, name='transfer_miles'),
+    path('transfer-miles/proses/', views.proses_transfer, name='proses_transfer'),
 ]
