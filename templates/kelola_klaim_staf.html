@@ -1,0 +1,195 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="p-8">
+    <div class="mb-8">
+        <h1 class="text-3xl font-bold text-white">Kelola Klaim Missing Miles</h1>
+        <p class="text-slate-400">Verifikasi dan proses pengajuan klaim miles dari member.</p>
+    </div>
+
+    <div class="flex flex-wrap gap-4 mb-6">
+        <select id="filterStatus" onchange="filterTable()" class="bg-slate-800 border border-white/10 rounded-lg px-4 py-2 text-sm text-white outline-none focus:border-electric">
+            <option value="">Semua Status</option>
+            <option value="MENUNGGU">Menunggu</option>
+            <option value="DISETUJUI">Disetujui</option>
+            <option value="DITOLAK">Ditolak</option>
+        </select>
+        
+        <select id="filterMaskapai" onchange="filterTable()" class="bg-slate-800 border border-white/10 rounded-lg px-4 py-2 text-sm text-white outline-none focus:border-electric">
+            <option value="">Semua Maskapai</option>
+            <option value="GA">GA</option>
+            <option value="SQ">SQ</option>
+            <option value="MH">MH</option>
+        </select>
+
+        <input type="date" id="filterTanggal" onchange="filterTable()" class="bg-slate-800 border border-white/10 rounded-lg px-4 py-2 text-sm text-white outline-none focus:border-electric">
+        
+        <button onclick="resetFilters()" class="text-xs text-slate-500 hover:text-electric transition-colors underline">Reset Filter</button>
+    </div>
+
+    <div class="bg-slate-900/50 border border-white/10 rounded-2xl overflow-hidden backdrop-blur-md">
+        <table class="w-full text-left" id="claimTable">
+            <thead>
+                <tr class="bg-white/5 border-b border-white/10">
+                    <th class="p-4 text-xs font-bold text-slate-400 uppercase tracking-wider">No Klaim</th>
+                    <th class="p-4 text-xs font-bold text-slate-400 uppercase tracking-wider">Member</th>
+                    <th class="p-4 text-xs font-bold text-slate-400 uppercase tracking-wider">Maskapai</th>
+                    <th class="p-4 text-xs font-bold text-slate-400 uppercase tracking-wider">Rute</th>
+                    <th class="p-4 text-xs font-bold text-slate-400 uppercase tracking-wider">Flight/Kelas</th>
+                    <th class="p-4 text-xs font-bold text-slate-400 uppercase tracking-wider">Tgl Pengajuan</th>
+                    <th class="p-4 text-xs font-bold text-slate-400 uppercase tracking-wider">Status</th>
+                    <th class="p-4 text-xs font-bold text-slate-400 uppercase tracking-wider">Aksi</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-white/5">
+                {% for k in klaim_list %}
+                <tr class="claim-row hover:bg-white/[0.02] transition-colors" 
+                    data-status="{{ k.status|upper }}" 
+                    data-maskapai="{{ k.maskapai }}" 
+                    data-tanggal="{{ k.tanggal_pengajuan|slice:':10' }}">
+                    
+                    <td class="p-4 font-mono text-sm text-electric">CLM-00{{ k.id }}</td>
+                    <td class="p-4">
+                        <div class="text-sm font-medium text-white">{{ k.nama_member }}</div>
+                        <div class="text-xs text-slate-500">{{ k.email_member }}</div>
+                    </td>
+                    <td class="p-4 text-sm text-slate-300">{{ k.maskapai }}</td>
+                    <td class="p-4 text-sm text-slate-300">{{ k.rute }}</td>
+                    <td class="p-4">
+                        <div class="text-sm text-slate-300">{{ k.flight }}</div>
+                        <div class="text-xs text-slate-500">{{ k.kelas }}</div>
+                    </td>
+                    <td class="p-4 text-xs text-slate-500">{{ k.tanggal_pengajuan }}</td>
+                    <td class="p-4">
+                        {% if k.status == 'Disetujui' %}
+                        <span class="px-2 py-1 rounded text-[10px] font-bold bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 uppercase">Disetujui</span>
+                        {% elif k.status == 'Menunggu' %}
+                        <span class="px-2 py-1 rounded text-[10px] font-bold bg-amber-500/10 text-amber-500 border border-amber-500/20 uppercase">Menunggu</span>
+                        {% else %}
+                        <span class="px-2 py-1 rounded text-[10px] font-bold bg-rose-500/10 text-rose-500 border border-rose-500/20 uppercase">Ditolak</span>
+                        {% endif %}
+                    </td>
+                    <td class="p-4 text-center">
+                        {% if k.status == 'Menunggu' %}
+                        <div class="flex space-x-3">
+                            <button onclick="openModal('setuju', 'CLM-00{{ k.id }}', '{{ k.nama_member }}', '{{ k.rute }}', '{{ k.kelas }}')" class="text-emerald-500 hover:text-emerald-400 transition-colors">
+                                <i class="fa-regular fa-circle-check text-xl"></i>
+                            </button>
+                            <button onclick="openModal('tolak', 'CLM-00{{ k.id }}', '{{ k.nama_member }}', '{{ k.rute }}', '{{ k.kelas }}')" class="text-rose-500 hover:text-rose-400 transition-colors">
+                                <i class="fa-regular fa-circle-xmark text-xl"></i>
+                            </button>
+                        </div>
+                        {% else %}
+                        <i class="fa-solid fa-circle-check text-slate-700"></i>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div id="modalOverlay" class="fixed inset-0 bg-black/80 backdrop-blur-sm hidden items-center justify-center z-50">
+    <div class="bg-white rounded-xl shadow-2xl w-full max-w-md overflow-hidden transform transition-all scale-95 opacity-0" id="modalContent">
+        <div class="p-6 pb-2 flex justify-between items-start">
+            <div>
+                <h3 id="modalTitle" class="text-xl font-bold text-slate-900">Judul Modal</h3>
+                <p id="modalSub" class="text-sm text-slate-500 mt-1">Subdeskripsi modal disini.</p>
+            </div>
+            <button onclick="closeModal()" class="text-slate-400 hover:text-slate-600">
+                <i class="fa-solid fa-xmark text-lg"></i>
+            </button>
+        </div>
+
+        <div class="p-6 pt-2 space-y-3 text-sm border-b border-slate-100">
+            <div class="flex">
+                <span class="w-24 text-slate-500">Klaim:</span>
+                <span id="txtId" class="font-bold text-slate-900"></span>
+            </div>
+            <div class="flex">
+                <span class="w-24 text-slate-500">Member:</span>
+                <span id="txtMember" class="font-bold text-slate-900"></span>
+            </div>
+            <div class="flex">
+                <span class="w-24 text-slate-500">Rute:</span>
+                <span id="txtRute" class="font-bold text-slate-900"></span>
+            </div>
+            <div class="flex">
+                <span class="w-24 text-slate-500">Kelas:</span>
+                <span id="txtKelas" class="font-bold text-slate-900"></span>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="p-4 bg-slate-50 flex justify-end space-x-3">
+            <button onclick="closeModal()" class="px-5 py-2 text-sm font-bold text-slate-600 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 transition-colors">Batal</button>
+            <button id="btnAction" class="px-5 py-2 text-sm font-bold text-white rounded-lg transition-all shadow-lg shadow-blue-500/20">Aksi</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    function filterTable() {
+        const sVal = document.getElementById('filterStatus').value;
+        const mVal = document.getElementById('filterMaskapai').value;
+        const tVal = document.getElementById('filterTanggal').value;
+        document.querySelectorAll('.claim-row').forEach(row => {
+            const matchS = sVal === "" || row.dataset.status === sVal;
+            const matchM = mVal === "" || row.dataset.maskapai === mVal;
+            const matchT = tVal === "" || row.dataset.tanggal === tVal;
+            row.style.display = (matchS && matchM && matchT) ? "" : "none";
+        });
+    }
+
+    function resetFilters() {
+        document.getElementById('filterStatus').value = "";
+        document.getElementById('filterMaskapai').value = "";
+        document.getElementById('filterTanggal').value = "";
+        filterTable();
+    }
+
+    const overlay = document.getElementById('modalOverlay');
+    const content = document.getElementById('modalContent');
+
+    function openModal(type, id, member, rute, kelas) {
+        const isSetuju = type === 'setuju';
+        
+        document.getElementById('modalTitle').innerText = isSetuju ? 'Setujui Klaim' : 'Tolak Klaim';
+        document.getElementById('modalSub').innerText = isSetuju 
+            ? 'Miles akan ditambahkan ke akun member sesuai rute dan kelas kabin.' 
+            : 'Klaim akan ditolak dan member akan diinformasikan.';
+        
+        document.getElementById('txtId').innerText = id;
+        document.getElementById('txtMember').innerText = member;
+        document.getElementById('txtRute').innerText = rute;
+        document.getElementById('txtKelas').innerText = kelas;
+
+        const btn = document.getElementById('btnAction');
+        btn.innerText = isSetuju ? 'Setujui' : 'Tolak';
+        btn.className = isSetuju 
+            ? 'px-5 py-2 text-sm font-bold text-white bg-blue-900 hover:bg-blue-800 rounded-lg' 
+            : 'px-5 py-2 text-sm font-bold text-white bg-rose-600 hover:bg-rose-500 rounded-lg';
+
+        overlay.classList.remove('hidden');
+        overlay.classList.add('flex');
+        setTimeout(() => {
+            content.classList.remove('scale-95', 'opacity-0');
+            content.classList.add('scale-100', 'opacity-100');
+        }, 10);
+    }
+
+    function closeModal() {
+        content.classList.remove('scale-100', 'opacity-100');
+        content.classList.add('scale-95', 'opacity-0');
+        setTimeout(() => {
+            overlay.classList.remove('flex');
+            overlay.classList.add('hidden');
+        }, 200);
+    }
+
+    overlay.addEventListener('click', (e) => {
+        if(e.target === overlay) closeModal();
+    });
+</script>
+{% endblock %}
