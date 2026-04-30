@@ -297,3 +297,59 @@ def edit_klaim(request, id):
 def batalkan_klaim(request, id):
     messages.success(request, f'Klaim ID {id} berhasil dihapus!')
     return redirect('klaim_miles')
+
+def kelola_klaim_staf(request):
+    role = request.session.get('role')
+    if role != 'staf':
+        return redirect('dashboard')
+
+    klaim_staf_list = [
+        {
+            'id': 1,
+            'nama_member': 'John W. Doe',
+            'email_member': 'member@aeromiles.com',
+            'maskapai': 'GA',
+            'rute': 'CGK → DPS',
+            'tanggal': '2024-10-01',
+            'flight': 'GA404',
+            'kelas': 'Business',
+            'tanggal_pengajuan': '2024-10-05 18:45:00',
+            'status': 'Disetujui'
+        },
+        {
+            'id': 2,
+            'nama_member': 'John W. Doe',
+            'email_member': 'member@aeromiles.com',
+            'maskapai': 'SQ',
+            'rute': 'SIN → NRT',
+            'tanggal': '2024-11-15',
+            'flight': 'SQ12',
+            'kelas': 'Economy',
+            'tanggal_pengajuan': '2024-11-20 18:45:00',
+            'status': 'Menunggu'
+        },
+        {
+            'id': 3,
+            'nama_member': 'Jane Smith',
+            'email_member': 'jane@example.com',
+            'maskapai': 'GA',
+            'rute': 'CGK → SUB',
+            'tanggal': '2024-12-01',
+            'flight': 'GA310',
+            'kelas': 'Economy',
+            'tanggal_pengajuan': '2024-12-05 18:45:00',
+            'status': 'Menunggu'
+        }
+    ]
+
+    return render(request, 'kelola_klaim_staf.html', {'klaim_list': klaim_staf_list})
+
+def setujui_klaim(request, pk):
+    if request.method == 'POST':
+        messages.success(request, f'Klaim CLM-00{pk} berhasil disetujui. Miles telah ditambahkan ke member.')
+    return redirect('kelola_klaim_staf')
+
+def tolak_klaim(request, pk):
+    if request.method == 'POST':
+        messages.error(request, f'Klaim CLM-00{pk} telah ditolak.')
+    return redirect('kelola_klaim_staf')

@@ -27,4 +27,8 @@ urlpatterns = [
     path('klaim-miles/tambah/', views.ajukan_klaim, name='ajukan_klaim'),
     path('klaim-miles/edit/<int:id>/', views.edit_klaim, name='edit_klaim'),
     path('klaim-miles/hapus/<int:id>/', views.batalkan_klaim, name='batalkan_klaim'),
+
+    path('staf/kelola-klaim/', views.kelola_klaim_staf, name='kelola_klaim_staf'),
+    path('staf/klaim/setujui/<int:pk>/', views.setujui_klaim, name='setujui_klaim'),
+    path('staf/klaim/tolak/<int:pk>/', views.tolak_klaim, name='tolak_klaim'),
 ]
