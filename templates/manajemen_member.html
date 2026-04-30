@@ -1,59 +1,250 @@
 {% extends 'base.html' %}
-
 {% block content %}
 <div class="max-w-7xl mx-auto px-4 py-10 w-full relative z-10">
     <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
         <div>
-            <h1 class="text-3xl font-extrabold text-white tracking-widest uppercase mb-2">Manajemen Data Member</h1>
+            <h1 class="text-3xl font-extrabold text-white tracking-widest uppercase mb-2">Kelola Member</h1>
             <p class="text-slate-400 text-sm tracking-wider">Kelola dan pantau data seluruh member terdaftar di AeroMiles</p>
         </div>
+        <button onclick="document.getElementById('modalTambahMember').classList.remove('hidden')" class="bg-electric/10 hover:bg-electric/20 text-electric border border-electric/30 px-5 py-2.5 rounded-xl text-sm font-bold transition-all flex items-center shadow-lg">
+            <i class="fa-solid fa-plus mr-2"></i> Tambah Member
+        </button>
     </div>
+
+    {% if messages %}
+        {% for message in messages %}
+            <div class="bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 px-4 py-3 rounded-xl text-sm mb-4">{{ message }}</div>
+        {% endfor %}
+    {% endif %}
 
     <div class="bg-white/5 border border-white/10 rounded-2xl overflow-hidden backdrop-blur-md shadow-2xl">
         <div class="overflow-x-auto">
             <table class="w-full text-left text-sm text-slate-300">
                 <thead class="bg-white/5 border-b border-white/10 text-xs uppercase font-bold text-electric tracking-widest">
                     <tr>
-                        <th class="px-6 py-4">Nomor Member</th>
-                        <th class="px-6 py-4">Nama Lengkap</th>
+                        <th class="px-6 py-4">No. Member</th>
+                        <th class="px-6 py-4">Nama</th>
                         <th class="px-6 py-4">Email</th>
-                        <th class="px-6 py-4">Tier Status</th>
+                        <th class="px-6 py-4">Tier</th>
                         <th class="px-6 py-4">Total Miles</th>
+                        <th class="px-6 py-4">Award Miles</th>
+                        <th class="px-6 py-4">Bergabung</th>
                         <th class="px-6 py-4 text-center">Aksi</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-white/5">
+                    {% for member in member_list %}
                     <tr class="hover:bg-white/5 transition-colors">
-                        <td class="px-6 py-4 font-bold text-white tracking-wider">M0001</td>
-                        <td class="px-6 py-4">John William Doe</td>
-                        <td class="px-6 py-4">member@aeromiles.com</td>
+                        <td class="px-6 py-4 font-bold text-white tracking-wider">{{ member.nomor_member }}</td>
+                        <td class="px-6 py-4">{{ member.salutation }} {{ member.nama_depan }} {{ member.nama_belakang }}</td>
+                        <td class="px-6 py-4">{{ member.email }}</td>
+                        
                         <td class="px-6 py-4">
-                            <span class="px-2.5 py-1 bg-electric/20 text-electric rounded-md border border-electric/30 text-xs font-bold uppercase tracking-widest">Blue</span>
+                            {% if member.tier == 'Blue' %}
+                                <span class="px-2.5 py-1 bg-blue-500/20 text-blue-400 rounded-md border border-blue-500/30 text-xs font-bold uppercase tracking-widest">{{ member.tier }}</span>
+                            {% elif member.tier == 'Silver' %}
+                                <span class="px-2.5 py-1 bg-slate-400/20 text-slate-300 rounded-md border border-slate-400/30 text-xs font-bold uppercase tracking-widest">{{ member.tier }}</span>
+                            {% elif member.tier == 'Gold' %}
+                                <span class="px-2.5 py-1 bg-amber-500/20 text-amber-400 rounded-md border border-amber-500/30 text-xs font-bold uppercase tracking-widest">{{ member.tier }}</span>
+                            {% elif member.tier == 'Platinum' %}
+                                <span class="px-2.5 py-1 bg-purple-500/20 text-purple-400 rounded-md border border-purple-500/30 text-xs font-bold uppercase tracking-widest">{{ member.tier }}</span>
+                            {% else %}
+                                <span class="px-2.5 py-1 bg-white/10 text-white rounded-md border border-white/20 text-xs font-bold uppercase tracking-widest">{{ member.tier }}</span>
+                            {% endif %}
                         </td>
-                        <td class="px-6 py-4 font-mono text-electric">5,000</td>
+                        
+                        <td class="px-6 py-4 font-mono text-white">{{ member.total_miles }}</td>
+                        <td class="px-6 py-4 font-mono text-electric">{{ member.award_miles }}</td>
+                        <td class="px-6 py-4 text-xs font-mono">{{ member.tanggal_bergabung }}</td>
+                        
                         <td class="px-6 py-4 text-center">
-                            <a href="{% url 'form_member' %}" class="inline-block bg-white/10 hover:bg-electric hover:text-dsn text-white p-2 rounded-lg transition-all duration-300" title="Edit/Detail Member">
+                            <button type="button" onclick="document.getElementById('modalEditMember_{{ forloop.counter }}').classList.remove('hidden')" class="text-electric hover:text-cyan-300 mr-3 text-xs transition-colors" title="Edit Member">
                                 <i class="fa-solid fa-pen-to-square"></i>
-                            </a>
+                            </button>
+                            <button type="button" onclick="document.getElementById('modalHapusMember_{{ forloop.counter }}').classList.remove('hidden')" class="text-rose-400 hover:text-rose-300 text-xs transition-colors" title="Hapus Member">
+                                <i class="fa-solid fa-trash"></i>
+                            </button>
                         </td>
                     </tr>
-                    <tr class="hover:bg-white/5 transition-colors">
-                        <td class="px-6 py-4 font-bold text-white tracking-wider">M0002</td>
-                        <td class="px-6 py-4">Aaron Nathanael</td>
-                        <td class="px-6 py-4">aaron@mail.com</td>
-                        <td class="px-6 py-4">
-                            <span class="px-2.5 py-1 bg-amber-500/20 text-amber-400 rounded-md border border-amber-500/30 text-xs font-bold uppercase tracking-widest">Gold</span>
-                        </td>
-                        <td class="px-6 py-4 font-mono text-amber-400">45,000</td>
-                        <td class="px-6 py-4 text-center">
-                            <a href="{% url 'form_member' %}" class="inline-block bg-white/10 hover:bg-electric hover:text-dsn text-white p-2 rounded-lg transition-all duration-300" title="Edit/Detail Member">
-                                <i class="fa-solid fa-pen-to-square"></i>
-                            </a>
-                        </td>
-                    </tr>
+                    {% empty %}
+                    <tr><td colspan="8" class="p-8 text-center text-slate-500">Belum ada data member.</td></tr>
+                    {% endfor %}
                 </tbody>
             </table>
         </div>
     </div>
 </div>
+
+<div id="modalTambahMember" class="fixed inset-0 bg-black/60 backdrop-blur-sm hidden items-center justify-center z-50 p-4 flex">
+    <div class="bg-[#0d1b2a] border border-white/10 rounded-2xl shadow-2xl w-full max-w-2xl overflow-hidden">
+        <div class="p-6 flex justify-between items-center border-b border-white/5">
+            <h3 class="text-lg font-bold text-white">Tambah Member Baru</h3>
+            <button type="button" onclick="document.getElementById('modalTambahMember').classList.add('hidden')" class="text-slate-500 hover:text-white transition-colors">
+                <i class="fa-solid fa-xmark text-lg"></i>
+            </button>
+        </div>
+        <form action="{% url 'manajemen_member' %}" method="POST" class="p-6 space-y-4">
+            {% csrf_token %}
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Email</label>
+                    <input type="email" name="email" required class="w-full px-4 py-2.5 bg-white/5 border border-white/10 rounded-xl text-sm text-white focus:ring-2 focus:ring-electric/50 outline-none transition-all">
+                </div>
+                <div>
+                    <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Password</label>
+                    <input type="password" name="password" required class="w-full px-4 py-2.5 bg-white/5 border border-white/10 rounded-xl text-sm text-white focus:ring-2 focus:ring-electric/50 outline-none transition-all">
+                </div>
+            </div>
+            <div class="w-1/2 pr-2">
+                <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Salutation</label>
+                <select name="salutation" class="w-full px-4 py-2.5 bg-white/5 border border-white/10 rounded-xl text-sm text-white focus:ring-2 focus:ring-electric/50 outline-none transition-all appearance-none">
+                    <option value="Mr." class="bg-[#0d1b2a]">Mr.</option>
+                    <option value="Mrs." class="bg-[#0d1b2a]">Mrs.</option>
+                    <option value="Ms." class="bg-[#0d1b2a]">Ms.</option>
+                </select>
+            </div>
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Nama Depan</label>
+                    <input type="text" name="nama_depan" required class="w-full px-4 py-2.5 bg-white/5 border border-white/10 rounded-xl text-sm text-white focus:ring-2 focus:ring-electric/50 outline-none transition-all">
+                </div>
+                <div>
+                    <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Nama Tengah</label>
+                    <input type="text" name="nama_tengah" class="w-full px-4 py-2.5 bg-white/5 border border-white/10 rounded-xl text-sm text-white focus:ring-2 focus:ring-electric/50 outline-none transition-all">
+                </div>
+            </div>
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Nama Belakang</label>
+                    <input type="text" name="nama_belakang" required class="w-full px-4 py-2.5 bg-white/5 border border-white/10 rounded-xl text-sm text-white focus:ring-2 focus:ring-electric/50 outline-none transition-all">
+                </div>
+                <div>
+                    <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Kewarganegaraan</label>
+                    <select name="kewarganegaraan" class="w-full px-4 py-2.5 bg-white/5 border border-white/10 rounded-xl text-sm text-white focus:ring-2 focus:ring-electric/50 outline-none transition-all appearance-none">
+                        <option value="Indonesia" class="bg-[#0d1b2a]">Indonesia</option>
+                        <option value="Malaysia" class="bg-[#0d1b2a]">Malaysia</option>
+                        <option value="Singapore" class="bg-[#0d1b2a]">Singapore</option>
+                    </select>
+                </div>
+            </div>
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Country Code</label>
+                    <select name="country_code" class="w-full px-4 py-2.5 bg-white/5 border border-white/10 rounded-xl text-sm text-white focus:ring-2 focus:ring-electric/50 outline-none transition-all appearance-none">
+                        <option value="+62" class="bg-[#0d1b2a]">+62</option>
+                        <option value="+60" class="bg-[#0d1b2a]">+60</option>
+                        <option value="+65" class="bg-[#0d1b2a]">+65</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Nomor HP</label>
+                    <input type="text" name="nomor_hp" required class="w-full px-4 py-2.5 bg-white/5 border border-white/10 rounded-xl text-sm text-white focus:ring-2 focus:ring-electric/50 outline-none transition-all">
+                </div>
+            </div>
+            <div class="w-1/2 pr-2">
+                <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Tanggal Lahir</label>
+                <input type="date" name="tanggal_lahir" required class="w-full px-4 py-2.5 bg-white/5 border border-white/10 rounded-xl text-sm text-white focus:ring-2 focus:ring-electric/50 outline-none transition-all [color-scheme:dark]">
+            </div>
+            <div class="flex justify-end gap-3 pt-4">
+                <button type="button" onclick="document.getElementById('modalTambahMember').classList.add('hidden')" class="px-5 py-2.5 bg-white/5 border border-white/10 text-slate-400 rounded-xl text-sm font-bold hover:bg-white/10 transition-all">Batal</button>
+                <button type="submit" name="action" value="tambah" class="px-5 py-2.5 bg-electric/10 hover:bg-electric/20 text-electric border border-electric/30 rounded-xl text-sm font-bold transition-all">Simpan Data</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+
+{% for member in member_list %}
+<div id="modalEditMember_{{ forloop.counter }}" class="fixed inset-0 bg-black/60 backdrop-blur-sm hidden items-center justify-center z-50 p-4 flex">
+    <div class="bg-[#0d1b2a] border border-white/10 rounded-2xl shadow-2xl w-full max-w-2xl overflow-hidden">
+        <div class="p-6 flex justify-between items-center border-b border-white/5">
+            <h3 class="text-lg font-bold text-white">Edit Member</h3>
+            <button type="button" onclick="document.getElementById('modalEditMember_{{ forloop.counter }}').classList.add('hidden')" class="text-slate-500 hover:text-white transition-colors">
+                <i class="fa-solid fa-xmark text-lg"></i>
+            </button>
+        </div>
+        <form action="{% url 'manajemen_member' %}" method="POST" class="p-6 space-y-4">
+            {% csrf_token %}
+            <input type="hidden" name="nomor_member" value="{{ member.nomor_member }}">
+            <div class="w-1/2 pr-2">
+                <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Salutation</label>
+                <select name="salutation" class="w-full px-4 py-2.5 bg-white/5 border border-white/10 rounded-xl text-sm text-white focus:ring-2 focus:ring-electric/50 outline-none transition-all appearance-none">
+                    <option value="Mr." class="bg-[#0d1b2a]" {% if member.salutation == 'Mr.' %}selected{% endif %}>Mr.</option>
+                    <option value="Mrs." class="bg-[#0d1b2a]" {% if member.salutation == 'Mrs.' %}selected{% endif %}>Mrs.</option>
+                </select>
+            </div>
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Nama Depan</label>
+                    <input type="text" name="nama_depan" value="{{ member.nama_depan }}" required class="w-full px-4 py-2.5 bg-white/5 border border-white/10 rounded-xl text-sm text-white focus:ring-2 focus:ring-electric/50 outline-none transition-all">
+                </div>
+                <div>
+                    <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Nama Tengah</label>
+                    <input type="text" name="nama_tengah" value="{{ member.nama_tengah }}" class="w-full px-4 py-2.5 bg-white/5 border border-white/10 rounded-xl text-sm text-white focus:ring-2 focus:ring-electric/50 outline-none transition-all">
+                </div>
+            </div>
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Nama Belakang</label>
+                    <input type="text" name="nama_belakang" value="{{ member.nama_belakang }}" required class="w-full px-4 py-2.5 bg-white/5 border border-white/10 rounded-xl text-sm text-white focus:ring-2 focus:ring-electric/50 outline-none transition-all">
+                </div>
+                <div>
+                    <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Kewarganegaraan</label>
+                    <select name="kewarganegaraan" class="w-full px-4 py-2.5 bg-white/5 border border-white/10 rounded-xl text-sm text-white focus:ring-2 focus:ring-electric/50 outline-none transition-all appearance-none">
+                        <option value="Indonesia" class="bg-[#0d1b2a]" {% if member.kewarganegaraan == 'Indonesia' %}selected{% endif %}>Indonesia</option>
+                    </select>
+                </div>
+            </div>
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Country Code</label>
+                    <select name="country_code" class="w-full px-4 py-2.5 bg-white/5 border border-white/10 rounded-xl text-sm text-white focus:ring-2 focus:ring-electric/50 outline-none transition-all appearance-none">
+                        <option value="+62" class="bg-[#0d1b2a]" {% if member.country_code == '+62' %}selected{% endif %}>+62</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Nomor HP</label>
+                    <input type="text" name="nomor_hp" value="{{ member.nomor_hp }}" required class="w-full px-4 py-2.5 bg-white/5 border border-white/10 rounded-xl text-sm text-white focus:ring-2 focus:ring-electric/50 outline-none transition-all">
+                </div>
+            </div>
+            <div class="grid grid-cols-2 gap-4 border-b border-white/5 pb-4">
+                <div>
+                    <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Tanggal Lahir</label>
+                    <input type="date" name="tanggal_lahir" value="{{ member.tanggal_lahir|date:'Y-m-d' }}" required class="w-full px-4 py-2.5 bg-white/5 border border-white/10 rounded-xl text-sm text-white focus:ring-2 focus:ring-electric/50 outline-none transition-all [color-scheme:dark]">
+                </div>
+                <div>
+                    <label class="block text-[10px] font-bold text-amber-400 uppercase tracking-widest mb-2">Tier Status</label>
+                    <select name="tier" class="w-full px-4 py-2.5 bg-amber-500/10 border border-amber-500/30 rounded-xl text-sm text-white focus:ring-2 focus:ring-amber-400 outline-none transition-all appearance-none">
+                        <option value="Blue" class="bg-[#0d1b2a]" {% if member.tier == 'Blue' %}selected{% endif %}>Blue (T01)</option>
+                        <option value="Silver" class="bg-[#0d1b2a]" {% if member.tier == 'Silver' %}selected{% endif %}>Silver (T02)</option>
+                        <option value="Gold" class="bg-[#0d1b2a]" {% if member.tier == 'Gold' %}selected{% endif %}>Gold (T03)</option>
+                        <option value="Platinum" class="bg-[#0d1b2a]" {% if member.tier == 'Platinum' %}selected{% endif %}>Platinum (T04)</option>
+                    </select>
+                </div>
+            </div>
+            <div class="flex justify-end gap-3 pt-2">
+                <button type="button" onclick="document.getElementById('modalEditMember_{{ forloop.counter }}').classList.add('hidden')" class="px-5 py-2.5 bg-white/5 border border-white/10 text-slate-400 rounded-xl text-sm font-bold hover:bg-white/10 transition-all">Batal</button>
+                <button type="submit" name="action" value="edit" class="px-5 py-2.5 bg-electric/10 hover:bg-electric/20 text-electric border border-electric/30 rounded-xl text-sm font-bold transition-all">Update Data</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div id="modalHapusMember_{{ forloop.counter }}" class="fixed inset-0 bg-black/60 backdrop-blur-sm hidden items-center justify-center z-50 p-4 flex">
+    <div class="bg-[#0d1b2a] border border-white/10 rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden">
+        <div class="p-6 border-b border-white/5">
+            <h3 class="text-xl font-bold text-white mb-2">Hapus Member?</h3>
+            <p class="text-sm text-slate-400">Semua data terkait (Identitas, Klaim, Transfer, Redeem) akan ikut terhapus. Tindakan ini tidak dapat dibatalkan.</p>
+        </div>
+        <div class="p-6 flex justify-end gap-3">
+            <button type="button" onclick="document.getElementById('modalHapusMember_{{ forloop.counter }}').classList.add('hidden')" class="px-5 py-2.5 bg-white/5 border border-white/10 text-slate-300 rounded-xl text-sm font-bold hover:bg-white/10 transition-all">Batal</button>
+            <form action="{% url 'manajemen_member' %}" method="POST" class="inline">
+                {% csrf_token %}
+                <input type="hidden" name="nomor_member" value="{{ member.nomor_member }}">
+                <button type="submit" name="action" value="hapus" class="px-5 py-2.5 bg-rose-500/20 text-rose-400 border border-rose-500/30 hover:bg-rose-500/30 rounded-xl text-sm font-bold transition-all">Ya, Hapus</button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endfor %}
 {% endblock %}
