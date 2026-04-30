@@ -7,6 +7,33 @@ def execute_query(query, params=None, fetch=False):
         return []
     return None
 
+DUMMY_PROFILES = {
+    'member@aeromiles.com': {
+        'salutation': 'Mr.', 'first_mid_name': 'John William', 'last_name': 'Doe',
+        'email': 'member@aeromiles.com', 'kewarganegaraan': 'Indonesia',
+        'tanggal_lahir': datetime.date(1995, 1, 1), 'country_code': '+62', 'mobile_number': '81234567890',
+        'role': 'member',
+        'member': {
+            'nomor_member': 'M0001', 'nama_tier': 'Gold', 'total_miles': 45000,
+            'award_miles': 32000, 'tanggal_bergabung': datetime.date(2024, 1, 15),
+        },
+    },
+    'admin@aeromiles.com': {
+        'salutation': 'Mr.', 'first_mid_name': 'Admin', 'last_name': 'Aero',
+        'email': 'admin@aeromiles.com', 'kewarganegaraan': 'Indonesia',
+        'tanggal_lahir': datetime.date(1990, 5, 20), 'country_code': '+62', 'mobile_number': '81298765432',
+        'role': 'staf',
+        'staf': {
+            'id_staf': 'S0001', 'nama_maskapai': 'Garuda Indonesia',
+        },
+    },
+}
+
+def landing_view(request):
+    if request.session.get('role'):
+        return redirect('dashboard')
+    return render(request, 'landing.html')
+
 def login_view(request):
     if request.session.get('role'):
         return redirect('dashboard')
@@ -45,37 +72,22 @@ def register_view(request):
 
 def logout_view(request):
     request.session.flush()
-    return redirect('login')
+    return redirect('landing')
 
 def dashboard_view(request):
     role = request.session.get('role')
-    name = request.session.get('name')
     email = request.session.get('email')
     
-    if not request.session.get('role'):
+    if not role:
         return redirect('login')
 
-    user_dummy = {
-        'salutation': 'Mr.',
-        'first_mid_name': 'Jonathan Hans',
-        'last_name': 'Emanuelle',
-        'email': email,
-        'kewarganegaraan': 'Indonesia',
-        'tanggal_lahir': datetime.date(2006, 4, 1),
-        'country_code': '+62',
-        'mobile_number': '81234567890'
-    }
-
-    context = {'user': user_dummy, 'role': role, 'name': request.session.get('name')}
+    profile = DUMMY_PROFILES.get(email, {})
+    name = f"{profile.get('salutation', '')} {profile.get('first_mid_name', '')} {profile.get('last_name', '')}".strip()
+    request.session['name'] = name
+    context = {'user': profile, 'role': role, 'name': name}
 
     if role == 'member':
-        context['member'] = {
-            'nomor_member': 'M2406',
-            'nama_tier': 'Gold',
-            'total_miles': 45000,
-            'award_miles': 32000,
-            'tanggal_bergabung': datetime.date(2025, 9, 1)
-        }
+        context['member'] = profile.get('member', {})
         context['recent_transactions'] = [
             {'jenis': 'Transfer (Kirim)', 'waktu': datetime.datetime(2026, 4, 15, 10, 30), 'miles': -5000},
             {'jenis': 'Redeem', 'waktu': datetime.datetime(2026, 4, 20, 16, 0), 'miles': -3000},
@@ -83,10 +95,7 @@ def dashboard_view(request):
         ]
         
     elif role == 'staf':
-        context['staf'] = {
-            'id_staf': 'S2406',
-            'nama_maskapai': 'Garuda Indonesia'
-        }
+        context['staf'] = profile.get('staf', {})
         context['klaim'] = {
             'menunggu': 2,
             'disetujui': 5,

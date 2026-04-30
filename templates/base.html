@@ -50,8 +50,8 @@
 <body class="bg-dsn min-h-screen flex flex-col font-sans text-white">
 
     <nav class="bg-dsn/80 backdrop-blur-lg text-white sticky top-0 z-50 border-b border-white/5">
-        <div class="max-w-[1400px] mx-auto px-6 overflow-x-auto">
-            <div class="flex justify-between items-center h-20 min-w-max">
+        <div class="max-w-[1400px] mx-auto px-6">
+            <div class="flex justify-between items-center h-20 flex-wrap gap-y-2">
                 
                 <a href="{% url 'dashboard' %}" class="flex items-center space-x-3 cursor-pointer mr-8">
                     <div class="bg-white/5 p-2.5 rounded-xl border border-white/10 shadow-[0_0_10px_rgba(0,229,255,0.2)]">
@@ -83,7 +83,7 @@
                         {% include 'components/nav_link.html' with url='/logout/' icon='fa-solid fa-arrow-right-from-bracket' label='Logout' is_logout=True %}
 
                     {% else %}
-                        {% include 'components/nav_link.html' with url='/' icon='fa-solid fa-right-to-bracket' label='Login' %}
+                        {% include 'components/nav_link.html' with url='/login/' icon='fa-solid fa-right-to-bracket' label='Login' %}
                         {% include 'components/nav_link.html' with url='/register/' icon='fa-solid fa-user-plus' label='Registrasi' %}
                     {% endif %}
                 </div>
