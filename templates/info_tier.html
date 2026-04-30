@@ -2,12 +2,9 @@
 
 {% block content %}
 <div class="p-8 max-w-[1400px] mx-auto">
-    <div class="mb-8">
-        <h1 class="text-3xl font-extrabold text-white tracking-widest uppercase">Informasi Tier & Keuntungan</h1>
-        <p class="text-slate-400 mt-2">Daftar persyaratan tier AeroMiles.</p>
-    </div>
+    {% include 'components/page_header.html' with title="Informasi Tier & Keuntungan" subtitle="Daftar persyaratan tier AeroMiles." %}
 
-    <!-- Current tier info -->
+    <!-- Current tier summary -->
     <div class="bg-white/5 border border-white/10 rounded-2xl p-6 mb-8 flex flex-wrap gap-8 items-center shadow-lg">
         <div>
             <div class="text-xs text-slate-500 uppercase tracking-widest mb-1">Tier Anda Saat Ini</div>
@@ -72,11 +69,7 @@
                     </td>
                 </tr>
                 {% empty %}
-                <tr>
-                    <td colspan="4" class="py-10 text-center text-slate-500">
-                        Tidak ada data tier.
-                    </td>
-                </tr>
+                <tr>{% include 'components/empty_state.html' with colspan=4 text="Tidak ada data tier." %}</tr>
                 {% endfor %}
             </tbody>
         </table>

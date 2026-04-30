@@ -3,23 +3,11 @@
 {% block content %}
 <div class="p-8 max-w-[1400px] mx-auto">
     <div class="flex justify-between items-center mb-8">
-        <div>
-            <h1 class="text-3xl font-extrabold text-white tracking-widest uppercase">Beli Award Miles Package</h1>
-            <p class="text-slate-400 mt-2">Tingkatkan Award Miles Anda dengan membeli paket di bawah ini.</p>
-        </div>
-        <div class="bg-white/5 border border-white/10 px-6 py-3 rounded-xl shadow-lg">
-            <span class="text-slate-400 text-xs uppercase tracking-widest block mb-1">Award Miles Anda</span>
-            <span class="text-2xl font-bold text-electric">{{ award_miles }}</span>
-        </div>
+        {% include 'components/page_header.html' with title="Beli Award Miles Package" subtitle="Tingkatkan Award Miles Anda dengan membeli paket di bawah ini." %}
+        {% include 'components/miles_badge.html' with award_miles=award_miles %}
     </div>
 
-    {% if messages %}
-        {% for message in messages %}
-            <div class="mb-6 p-4 rounded-xl text-sm flex items-center {% if message.tags == 'success' %}bg-emerald-950/50 text-emerald-400 border-emerald-900/50{% else %}bg-rose-950/50 text-rose-400 border-rose-900/50{% endif %} border backdrop-blur-md">
-                <i class="fa-solid {% if message.tags == 'success' %}fa-circle-check{% else %}fa-triangle-exclamation{% endif %} mr-3 text-lg"></i>{{ message }}
-            </div>
-        {% endfor %}
-    {% endif %}
+    {% include 'components/messages.html' %}
 
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
         {% for p in paket_list %}
@@ -45,10 +33,7 @@
             </form>
         </div>
         {% empty %}
-        <div class="col-span-full py-12 text-center text-slate-500 bg-white/5 rounded-2xl border border-white/10">
-            <i class="fa-solid fa-box-open text-4xl mb-4 opacity-50"></i>
-            <p>Tidak ada paket yang tersedia saat ini.</p>
-        </div>
+        {% include 'components/empty_state.html' with text="Tidak ada paket yang tersedia saat ini." %}
         {% endfor %}
     </div>
 </div>

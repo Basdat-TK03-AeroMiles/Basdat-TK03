@@ -1,0 +1,7 @@
+{% if messages %}
+    {% for message in messages %}
+        <div class="mb-6 p-4 rounded-xl text-sm flex items-center {% if message.tags == 'success' %}bg-emerald-950/50 text-emerald-400 border-emerald-900/50{% else %}bg-rose-950/50 text-rose-400 border-rose-900/50{% endif %} border backdrop-blur-md">
+            <i class="fa-solid {% if message.tags == 'success' %}fa-circle-check{% else %}fa-triangle-exclamation{% endif %} mr-3 text-lg"></i>{{ message }}
+        </div>
+    {% endfor %}
+{% endif %}

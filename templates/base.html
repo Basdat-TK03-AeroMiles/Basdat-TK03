@@ -29,11 +29,22 @@
         ::-webkit-scrollbar { width: 6px; height: 6px; }
         ::-webkit-scrollbar-thumb { background: #334155; border-radius: 3px; }
         ::-webkit-scrollbar-track { background: #000B1B; }
-        
-        select option {
-            background-color: #000B1B;
-            color: white;
+        select option { background-color: #000B1B; color: white; }
+
+        .nav-link {
+            display: flex; align-items: center; font-size: 0.875rem; font-weight: 500;
+            color: #cbd5e1; border-radius: 0.5rem; padding: 0.5rem 0.75rem;
+            transition: all 0.3s; white-space: nowrap;
         }
+        .nav-link:hover { color: #00E5FF; background: rgba(255,255,255,0.05); }
+
+        .nav-link-logout {
+            display: flex; align-items: center; font-size: 0.875rem; font-weight: 500;
+            color: #fb7185; border-radius: 0.5rem; padding: 0.5rem 0.75rem;
+            transition: all 0.3s; white-space: nowrap; margin-left: 0.5rem;
+            border: 1px solid rgba(136,19,55,0.5);
+        }
+        .nav-link-logout:hover { color: #fda4af; background: rgba(136,19,55,0.4); }
     </style>
 </head>
 <body class="bg-dsn min-h-screen flex flex-col font-sans text-white">
@@ -42,41 +53,39 @@
         <div class="max-w-[1400px] mx-auto px-6 overflow-x-auto">
             <div class="flex justify-between items-center h-20 min-w-max">
                 
-                <div class="flex items-center space-x-3 cursor-pointer mr-8">
+                <a href="{% url 'dashboard' %}" class="flex items-center space-x-3 cursor-pointer mr-8">
                     <div class="bg-white/5 p-2.5 rounded-xl border border-white/10 shadow-[0_0_10px_rgba(0,229,255,0.2)]">
                         <i class="fa-solid fa-satellite text-electric text-xl"></i>
                     </div>
                     <span class="font-extrabold text-2xl tracking-widest text-white">AEROMILES</span>
-                </div>
+                </a>
 
                 <div class="flex items-center space-x-1.5">
-                    
                     {% if request.session.role == 'member' %}
-                        <a href="{% url 'dashboard' %}" class="flex items-center text-sm font-medium text-slate-300 hover:text-electric hover:bg-white/5 rounded-lg px-3 py-2 transition-all duration-300 whitespace-nowrap bg-white/5 border border-white/10"><i class="fa-solid fa-border-all text-lg mr-2 opacity-70 text-electric"></i>Dashboard</a>
-                        <a href="{% url 'manajemen_identitas' %}" class="flex items-center text-sm font-medium text-slate-300 hover:text-electric hover:bg-white/5 rounded-lg px-3 py-2 transition-all duration-300 whitespace-nowrap"><i class="fa-regular fa-id-card text-lg mr-2 opacity-70"></i>Identitas Saya</a>
-                        <a href="#" class="flex items-center text-sm font-medium text-slate-300 hover:text-electric hover:bg-white/5 rounded-lg px-3 py-2 transition-all duration-300 whitespace-nowrap"><i class="fa-solid fa-plane-circle-check text-lg mr-2 opacity-70"></i>Klaim Miles</a>
-                        <a href="#" class="flex items-center text-sm font-medium text-slate-300 hover:text-electric hover:bg-white/5 rounded-lg px-3 py-2 transition-all duration-300 whitespace-nowrap"><i class="fa-solid fa-exchange-alt text-lg mr-2 opacity-70"></i>Transfer Miles</a>
-                        <a href="{% url 'redeem_hadiah' %}" class="flex items-center text-sm font-medium text-slate-300 hover:text-electric hover:bg-white/5 rounded-lg px-3 py-2 transition-all duration-300 whitespace-nowrap"><i class="fa-solid fa-gift text-lg mr-2 opacity-70"></i>Redeem Hadiah</a>
-                        <a href="{% url 'beli_paket' %}" class="flex items-center text-sm font-medium text-slate-300 hover:text-electric hover:bg-white/5 rounded-lg px-3 py-2 transition-all duration-300 whitespace-nowrap"><i class="fa-solid fa-coins text-lg mr-2 opacity-70"></i>Beli Package</a>
-                        <a href="{% url 'info_tier' %}" class="flex items-center text-sm font-medium text-slate-300 hover:text-electric hover:bg-white/5 rounded-lg px-3 py-2 transition-all duration-300 whitespace-nowrap"><i class="fa-solid fa-ranking-star text-lg mr-2 opacity-70"></i>Info Tier</a>
-                        <a href="#" class="flex items-center text-sm font-medium text-slate-300 hover:text-electric hover:bg-white/5 rounded-lg px-3 py-2 transition-all duration-300 whitespace-nowrap"><i class="fa-solid fa-user-gear text-lg mr-2 opacity-70"></i>Pengaturan Profil</a>
-                        <a href="{% url 'logout' %}" class="flex items-center text-sm font-medium text-rose-400 hover:text-rose-300 hover:bg-rose-950/40 rounded-lg px-3 py-2 transition-all duration-300 whitespace-nowrap ml-2 border border-rose-900/50"><i class="fa-solid fa-arrow-right-from-bracket text-lg mr-2 opacity-70"></i>Logout</a>
+                        {% include 'components/nav_link.html' with url='/dashboard/' icon='fa-solid fa-border-all' label='Dashboard' %}
+                        {% include 'components/nav_link.html' with url='/member/identitas/' icon='fa-regular fa-id-card' label='Identitas Saya' %}
+                        {% include 'components/nav_link.html' with url='#' icon='fa-solid fa-plane-circle-check' label='Klaim Miles' %}
+                        {% include 'components/nav_link.html' with url='#' icon='fa-solid fa-exchange-alt' label='Transfer Miles' %}
+                        {% include 'components/nav_link.html' with url='/member/redeem/' icon='fa-solid fa-gift' label='Redeem Hadiah' %}
+                        {% include 'components/nav_link.html' with url='/member/package/' icon='fa-solid fa-coins' label='Beli Package' %}
+                        {% include 'components/nav_link.html' with url='/member/tier/' icon='fa-solid fa-ranking-star' label='Info Tier' %}
+                        {% include 'components/nav_link.html' with url='#' icon='fa-solid fa-user-gear' label='Pengaturan Profil' %}
+                        {% include 'components/nav_link.html' with url='/logout/' icon='fa-solid fa-arrow-right-from-bracket' label='Logout' is_logout=True %}
 
                     {% elif request.session.role == 'staf' %}
-                        <a href="{% url 'dashboard' %}" class="flex items-center text-sm font-medium text-slate-300 hover:text-electric hover:bg-white/5 rounded-lg px-3 py-2 transition-all duration-300 whitespace-nowrap bg-white/5 border border-white/10"><i class="fa-solid fa-border-all text-lg mr-2 opacity-70 text-electric"></i>Dashboard</a>
-                        <a href="{% url 'manajemen_member' %}" class="flex items-center text-sm font-medium text-slate-300 hover:text-electric hover:bg-white/5 rounded-lg px-3 py-2 transition-all duration-300 whitespace-nowrap"><i class="fa-solid fa-users text-lg mr-2 opacity-70"></i>Kelola Member</a>
-                        <a href="#" class="flex items-center text-sm font-medium text-slate-300 hover:text-electric hover:bg-white/5 rounded-lg px-3 py-2 transition-all duration-300 whitespace-nowrap"><i class="fa-solid fa-file-circle-check text-lg mr-2 opacity-70"></i>Kelola Klaim</a>
-                        <a href="{% url 'daftar_hadiah' %}" class="flex items-center text-sm font-medium text-slate-300 hover:text-electric hover:bg-white/5 rounded-lg px-3 py-2 transition-all duration-300 whitespace-nowrap"><i class="fa-solid fa-gifts text-lg mr-2 opacity-70"></i>Kelola Hadiah & Penyedia</a>
-                        <a href="{% url 'daftar_mitra' %}" class="flex items-center text-sm font-medium text-slate-300 hover:text-electric hover:bg-white/5 rounded-lg px-3 py-2 transition-all duration-300 whitespace-nowrap"><i class="fa-solid fa-handshake text-lg mr-2 opacity-70"></i>Kelola Mitra</a>
-                        <a href="{% url 'laporan_transaksi' %}" class="flex items-center text-sm font-medium text-slate-300 hover:text-electric hover:bg-white/5 rounded-lg px-3 py-2 transition-all duration-300 whitespace-nowrap"><i class="fa-solid fa-file-invoice-dollar text-lg mr-2 opacity-70"></i>Laporan Transaksi</a>
-                        <a href="#" class="flex items-center text-sm font-medium text-slate-300 hover:text-electric hover:bg-white/5 rounded-lg px-3 py-2 transition-all duration-300 whitespace-nowrap"><i class="fa-solid fa-user-gear text-lg mr-2 opacity-70"></i>Pengaturan Profil</a>
-                        <a href="{% url 'logout' %}" class="flex items-center text-sm font-medium text-rose-400 hover:text-rose-300 hover:bg-rose-950/40 rounded-lg px-3 py-2 transition-all duration-300 whitespace-nowrap ml-2 border border-rose-900/50"><i class="fa-solid fa-arrow-right-from-bracket text-lg mr-2 opacity-70"></i>Logout</a>
+                        {% include 'components/nav_link.html' with url='/dashboard/' icon='fa-solid fa-border-all' label='Dashboard' %}
+                        {% include 'components/nav_link.html' with url='/staf/member/' icon='fa-solid fa-users' label='Kelola Member' %}
+                        {% include 'components/nav_link.html' with url='#' icon='fa-solid fa-file-circle-check' label='Kelola Klaim' %}
+                        {% include 'components/nav_link.html' with url='/staf/hadiah/' icon='fa-solid fa-gifts' label='Kelola Hadiah & Penyedia' %}
+                        {% include 'components/nav_link.html' with url='/staf/mitra/' icon='fa-solid fa-handshake' label='Kelola Mitra' %}
+                        {% include 'components/nav_link.html' with url='/staf/transaksi/' icon='fa-solid fa-file-invoice-dollar' label='Laporan Transaksi' %}
+                        {% include 'components/nav_link.html' with url='#' icon='fa-solid fa-user-gear' label='Pengaturan Profil' %}
+                        {% include 'components/nav_link.html' with url='/logout/' icon='fa-solid fa-arrow-right-from-bracket' label='Logout' is_logout=True %}
 
                     {% else %}
-                        <a href="{% url 'login' %}" class="flex items-center text-sm font-medium text-white hover:text-electric hover:bg-white/5 rounded-lg px-3 py-2 transition-all duration-300 whitespace-nowrap"><i class="fa-solid fa-right-to-bracket text-lg mr-2 opacity-70"></i>Login</a>
-                        <a href="{% url 'register' %}" class="flex items-center text-sm font-medium text-slate-300 hover:text-electric hover:bg-white/5 rounded-lg px-3 py-2 transition-all duration-300 whitespace-nowrap"><i class="fa-solid fa-user-plus text-lg mr-2 opacity-70 text-electric"></i>Registrasi</a>
+                        {% include 'components/nav_link.html' with url='/' icon='fa-solid fa-right-to-bracket' label='Login' %}
+                        {% include 'components/nav_link.html' with url='/register/' icon='fa-solid fa-user-plus' label='Registrasi' %}
                     {% endif %}
-
                 </div>
             </div>
         </div>

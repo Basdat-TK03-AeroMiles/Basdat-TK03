@@ -1,0 +1,6 @@
+{% comment %}Reusable nav link. Pass: url, icon, label, is_logout (optional){% endcomment %}
+{% if is_logout %}
+<a href="{{ url }}" class="nav-link-logout"><i class="{{ icon }} text-lg mr-2 opacity-70"></i>{{ label }}</a>
+{% else %}
+<a href="{{ url }}" class="nav-link"><i class="{{ icon }} text-lg mr-2 opacity-70"></i>{{ label }}</a>
+{% endif %}

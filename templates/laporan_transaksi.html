@@ -2,18 +2,9 @@
 
 {% block content %}
 <div class="p-8 max-w-[1400px] mx-auto">
-    <div class="mb-8">
-        <h1 class="text-3xl font-extrabold text-white tracking-widest uppercase">Laporan & Riwayat Transaksi Miles</h1>
-        <p class="text-slate-400 mt-2">Rekap seluruh transaksi miles: Transfer, Redeem, Pembelian Package, dan Klaim yang Disetujui.</p>
-    </div>
+    {% include 'components/page_header.html' with title="Laporan & Riwayat Transaksi Miles" subtitle="Rekap seluruh transaksi miles: Transfer, Redeem, Pembelian Package, dan Klaim yang Disetujui." %}
 
-    {% if messages %}
-        {% for message in messages %}
-            <div class="mb-6 p-4 rounded-xl text-sm flex items-center {% if message.tags == 'success' %}bg-emerald-950/50 text-emerald-400 border-emerald-900/50{% else %}bg-rose-950/50 text-rose-400 border-rose-900/50{% endif %} border backdrop-blur-md">
-                <i class="fa-solid {% if message.tags == 'success' %}fa-circle-check{% else %}fa-triangle-exclamation{% endif %} mr-3 text-lg"></i>{{ message }}
-            </div>
-        {% endfor %}
-    {% endif %}
+    {% include 'components/messages.html' %}
 
     <!-- Ringkasan Statistik -->
     <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
@@ -113,11 +104,7 @@
                         </td>
                     </tr>
                     {% empty %}
-                    <tr>
-                        <td colspan="6" class="py-10 text-center text-slate-500">
-                            Tidak ada data transaksi.
-                        </td>
-                    </tr>
+                    <tr>{% include 'components/empty_state.html' with colspan=6 text="Tidak ada data transaksi." %}</tr>
                     {% endfor %}
                 </tbody>
             </table>
@@ -127,60 +114,9 @@
     <!-- Top Member -->
     <h2 class="text-xl font-bold text-white mb-4 uppercase tracking-widest">Top Member</h2>
     <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <!-- Top Miles -->
-        <div class="bg-white/5 border border-white/10 rounded-2xl p-6 shadow-lg">
-            <h3 class="text-sm font-bold text-electric uppercase tracking-widest mb-4"><i class="fa-solid fa-trophy mr-2"></i>Total Miles Tertinggi</h3>
-            <div class="space-y-3">
-                {% for m in top_miles %}
-                <div class="flex justify-between items-center text-sm">
-                    <div>
-                        <span class="text-slate-500 font-mono mr-2">{{ forloop.counter }}.</span>
-                        <span class="text-white font-semibold">{{ m.nama }}</span>
-                        <span class="text-xs text-slate-500 ml-1">({{ m.email }})</span>
-                    </div>
-                    <span class="text-electric font-bold font-mono">{{ m.total_miles }}</span>
-                </div>
-                {% empty %}
-                <p class="text-slate-500 text-sm">Tidak ada data.</p>
-                {% endfor %}
-            </div>
-        </div>
-
-        <!-- Top Redeem -->
-        <div class="bg-white/5 border border-white/10 rounded-2xl p-6 shadow-lg">
-            <h3 class="text-sm font-bold text-amber-400 uppercase tracking-widest mb-4"><i class="fa-solid fa-gift mr-2"></i>Paling Aktif Redeem</h3>
-            <div class="space-y-3">
-                {% for m in top_redeem %}
-                <div class="flex justify-between items-center text-sm">
-                    <div>
-                        <span class="text-slate-500 font-mono mr-2">{{ forloop.counter }}.</span>
-                        <span class="text-white font-semibold">{{ m.nama }}</span>
-                    </div>
-                    <span class="text-amber-400 font-bold font-mono">{{ m.jumlah }}x</span>
-                </div>
-                {% empty %}
-                <p class="text-slate-500 text-sm">Tidak ada data.</p>
-                {% endfor %}
-            </div>
-        </div>
-
-        <!-- Top Transfer -->
-        <div class="bg-white/5 border border-white/10 rounded-2xl p-6 shadow-lg">
-            <h3 class="text-sm font-bold text-blue-400 uppercase tracking-widest mb-4"><i class="fa-solid fa-exchange-alt mr-2"></i>Paling Aktif Transfer</h3>
-            <div class="space-y-3">
-                {% for m in top_transfer %}
-                <div class="flex justify-between items-center text-sm">
-                    <div>
-                        <span class="text-slate-500 font-mono mr-2">{{ forloop.counter }}.</span>
-                        <span class="text-white font-semibold">{{ m.nama }}</span>
-                    </div>
-                    <span class="text-blue-400 font-bold font-mono">{{ m.jumlah }}x</span>
-                </div>
-                {% empty %}
-                <p class="text-slate-500 text-sm">Tidak ada data.</p>
-                {% endfor %}
-            </div>
-        </div>
+        {% include 'components/top_member_card.html' with title="Total Miles Tertinggi" icon="fa-solid fa-trophy" color="text-electric" items=top_miles value_field="total_miles" show_email=True %}
+        {% include 'components/top_member_card.html' with title="Paling Aktif Redeem" icon="fa-solid fa-gift" color="text-amber-400" items=top_redeem value_field="jumlah" suffix="x" %}
+        {% include 'components/top_member_card.html' with title="Paling Aktif Transfer" icon="fa-solid fa-exchange-alt" color="text-blue-400" items=top_transfer value_field="jumlah" suffix="x" %}
     </div>
 </div>
 {% endblock %}

@@ -1,0 +1,24 @@
+{% comment %}Reusable top member ranking card. Pass: title, icon, color, items, value_field (total_miles or jumlah), show_email (optional), suffix (optional){% endcomment %}
+<div class="bg-white/5 border border-white/10 rounded-2xl p-6 shadow-lg">
+    <h3 class="text-sm font-bold {{ color }} uppercase tracking-widest mb-4"><i class="{{ icon }} mr-2"></i>{{ title }}</h3>
+    <div class="space-y-3">
+        {% for m in items %}
+        <div class="flex justify-between items-center text-sm">
+            <div>
+                <span class="text-slate-500 font-mono mr-2">{{ forloop.counter }}.</span>
+                <span class="text-white font-semibold">{{ m.nama }}</span>
+                {% if show_email %}
+                <span class="text-xs text-slate-500 ml-1">({{ m.email }})</span>
+                {% endif %}
+            </div>
+            {% if value_field == 'total_miles' %}
+            <span class="{{ color }} font-bold font-mono">{{ m.total_miles }}{{ suffix }}</span>
+            {% elif value_field == 'jumlah' %}
+            <span class="{{ color }} font-bold font-mono">{{ m.jumlah }}{{ suffix }}</span>
+            {% endif %}
+        </div>
+        {% empty %}
+        <p class="text-slate-500 text-sm">Tidak ada data.</p>
+        {% endfor %}
+    </div>
+</div>
