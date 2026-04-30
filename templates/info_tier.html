@@ -1,0 +1,85 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="p-8 max-w-[1400px] mx-auto">
+    <div class="mb-8">
+        <h1 class="text-3xl font-extrabold text-white tracking-widest uppercase">Informasi Tier & Keuntungan</h1>
+        <p class="text-slate-400 mt-2">Daftar persyaratan tier AeroMiles.</p>
+    </div>
+
+    <!-- Current tier info -->
+    <div class="bg-white/5 border border-white/10 rounded-2xl p-6 mb-8 flex flex-wrap gap-8 items-center shadow-lg">
+        <div>
+            <div class="text-xs text-slate-500 uppercase tracking-widest mb-1">Tier Anda Saat Ini</div>
+            <div class="text-2xl font-extrabold text-electric">{{ nama_tier }}</div>
+        </div>
+        <div class="h-10 w-px bg-white/10 hidden md:block"></div>
+        <div>
+            <div class="text-xs text-slate-500 uppercase tracking-widest mb-1">Total Miles</div>
+            <div class="text-2xl font-bold text-white">{{ total_miles }}</div>
+        </div>
+        {% if next_tier %}
+        <div class="h-10 w-px bg-white/10 hidden md:block"></div>
+        <div>
+            <div class="text-xs text-slate-500 uppercase tracking-widest mb-1">Tier Berikutnya</div>
+            <div class="text-lg font-bold text-lavender">{{ next_tier.nama }}</div>
+        </div>
+        <div class="h-10 w-px bg-white/10 hidden md:block"></div>
+        <div>
+            <div class="text-xs text-slate-500 uppercase tracking-widest mb-1">Miles Dibutuhkan</div>
+            <div class="text-lg font-bold text-amber-400">{% if miles_to_next > 0 %}{{ miles_to_next }}{% else %}0{% endif %}</div>
+        </div>
+        {% else %}
+        <div class="h-10 w-px bg-white/10 hidden md:block"></div>
+        <div>
+            <div class="text-xs text-slate-500 uppercase tracking-widest mb-1">Status</div>
+            <div class="text-lg font-bold text-emerald-400">Tier Tertinggi! 🎉</div>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Tier Table -->
+    <div class="bg-white/5 border border-white/10 rounded-2xl overflow-hidden shadow-2xl backdrop-blur-md">
+        <table class="w-full text-left border-collapse">
+            <thead>
+                <tr class="bg-dsn/80 border-b border-white/10 text-xs uppercase tracking-widest text-slate-400">
+                    <th class="py-4 px-6 font-bold">ID Tier</th>
+                    <th class="py-4 px-6 font-bold">Nama Tier</th>
+                    <th class="py-4 px-6 font-bold text-center">Min. Frekuensi Terbang</th>
+                    <th class="py-4 px-6 font-bold text-right">Min. Tier Miles</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-white/5 text-sm">
+                {% for t in tier_list %}
+                <tr class="{% if t.id_tier == current_tier_id %}bg-electric/10 border-l-4 border-electric{% else %}hover:bg-white/5{% endif %} transition-colors group">
+                    <td class="py-4 px-6 text-slate-500 font-mono">{{ t.id_tier }}</td>
+                    <td class="py-4 px-6 font-bold text-white flex items-center">
+                        {% if t.id_tier == current_tier_id %}
+                        <div class="w-2.5 h-2.5 rounded-full mr-3 bg-electric shadow-[0_0_8px_rgba(0,229,255,0.8)] animate-pulse"></div>
+                        {% else %}
+                        <div class="w-2 h-2 rounded-full mr-3 bg-slate-600"></div>
+                        {% endif %}
+                        {{ t.nama }}
+                        {% if t.id_tier == current_tier_id %}
+                        <span class="ml-2 text-[10px] bg-electric text-dsn px-2 py-0.5 rounded-full font-bold uppercase tracking-wider">Anda</span>
+                        {% endif %}
+                    </td>
+                    <td class="py-4 px-6 text-center text-slate-300">
+                        <span class="bg-white/5 px-3 py-1 rounded-full border border-white/10">{{ t.minimal_frekuensi_terbang }}x</span>
+                    </td>
+                    <td class="py-4 px-6 text-right font-mono {% if t.id_tier == current_tier_id %}text-electric{% else %}text-slate-300{% endif %} font-bold">
+                        {{ t.minimal_tier_miles }}
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="4" class="py-10 text-center text-slate-500">
+                        Tidak ada data tier.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

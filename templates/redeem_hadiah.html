@@ -1,0 +1,104 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="p-8 max-w-[1400px] mx-auto">
+    <div class="flex justify-between items-center mb-8">
+        <div>
+            <h1 class="text-3xl font-extrabold text-white tracking-widest uppercase">Redeem Hadiah</h1>
+            <p class="text-slate-400 mt-2">Tukarkan Award Miles Anda dengan berbagai hadiah menarik.</p>
+        </div>
+        <div class="bg-white/5 border border-white/10 px-6 py-3 rounded-xl shadow-lg">
+            <span class="text-slate-400 text-xs uppercase tracking-widest block mb-1">Award Miles Anda</span>
+            <span class="text-2xl font-bold text-electric">{{ award_miles }}</span>
+        </div>
+    </div>
+
+    {% if messages %}
+        {% for message in messages %}
+            <div class="mb-6 p-4 rounded-xl text-sm flex items-center {% if message.tags == 'success' %}bg-emerald-950/50 text-emerald-400 border-emerald-900/50{% else %}bg-rose-950/50 text-rose-400 border-rose-900/50{% endif %} border backdrop-blur-md">
+                <i class="fa-solid {% if message.tags == 'success' %}fa-circle-check{% else %}fa-triangle-exclamation{% endif %} mr-3 text-lg"></i>{{ message }}
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    <!-- Katalog Hadiah -->
+    <h2 class="text-xl font-bold text-white mb-4 uppercase tracking-widest">Katalog Hadiah</h2>
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
+        {% for h in hadiah_list %}
+        <div class="bg-white/5 border border-white/10 rounded-2xl p-6 flex flex-col transition-all hover:bg-white/10 shadow-lg group">
+            <div class="flex justify-between items-start mb-4">
+                <div class="w-12 h-12 rounded-xl bg-electric/10 text-electric flex items-center justify-center text-xl border border-electric/20">
+                    <i class="fa-solid fa-gift"></i>
+                </div>
+                <div class="bg-dsn px-3 py-1 rounded-full text-xs font-bold text-slate-300 border border-white/10">
+                    {{ h.kode_hadiah }}
+                </div>
+            </div>
+            
+            <h3 class="text-lg font-bold text-white mb-1">{{ h.nama }}</h3>
+            <p class="text-xs text-electric mb-2">{{ h.nama_penyedia }}</p>
+            <p class="text-sm text-slate-400 mb-3 flex-grow">{{ h.deskripsi }}</p>
+            
+            <div class="text-xs text-slate-500 mb-4">
+                <i class="fa-regular fa-calendar mr-1"></i> {{ h.valid_start_date|date:"d M Y" }} – {{ h.program_end|date:"d M Y" }}
+            </div>
+
+            <div class="mb-4">
+                <div class="text-xs text-slate-500 uppercase tracking-wider mb-1">Dibutuhkan</div>
+                <div class="text-xl font-extrabold text-electric">{{ h.miles }} <span class="text-xs text-slate-400 font-normal tracking-widest">MILES</span></div>
+            </div>
+
+            <form method="POST" action="{% url 'redeem_hadiah' %}" onsubmit="return confirm('Anda akan menukarkan {{ h.miles }} Award Miles untuk hadiah ini. Lanjutkan?');">
+                {% csrf_token %}
+                <input type="hidden" name="kode_hadiah" value="{{ h.kode_hadiah }}">
+                {% if award_miles >= h.miles %}
+                <button type="submit" class="w-full bg-electric/10 hover:bg-electric text-electric hover:text-dsn font-bold py-3 rounded-xl transition-all duration-300 uppercase tracking-widest text-xs border border-electric/30 hover:border-transparent">
+                    Tukarkan
+                </button>
+                {% else %}
+                <button type="button" disabled class="w-full bg-white/5 text-slate-500 font-bold py-3 rounded-xl uppercase tracking-widest text-xs border border-white/10 cursor-not-allowed">
+                    Miles Tidak Cukup
+                </button>
+                {% endif %}
+            </form>
+        </div>
+        {% empty %}
+        <div class="col-span-full py-12 text-center text-slate-500 bg-white/5 rounded-2xl border border-white/10">
+            <i class="fa-solid fa-box-open text-4xl mb-4 opacity-50"></i>
+            <p>Tidak ada hadiah yang tersedia saat ini.</p>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Riwayat Redeem -->
+    <h2 class="text-xl font-bold text-white mb-4 uppercase tracking-widest">Riwayat Redeem</h2>
+    <div class="bg-white/5 border border-white/10 rounded-2xl overflow-hidden shadow-2xl backdrop-blur-md">
+        <table class="w-full text-left border-collapse">
+            <thead>
+                <tr class="bg-dsn/80 border-b border-white/10 text-xs uppercase tracking-widest text-slate-400">
+                    <th class="py-4 px-6 font-bold">Waktu</th>
+                    <th class="py-4 px-6 font-bold">Kode Hadiah</th>
+                    <th class="py-4 px-6 font-bold">Nama Hadiah</th>
+                    <th class="py-4 px-6 font-bold text-right">Miles Digunakan</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-white/5 text-sm">
+                {% for r in riwayat_redeem %}
+                <tr class="hover:bg-white/5 transition-colors">
+                    <td class="py-4 px-6 text-slate-300 font-mono">{{ r.timestamp|date:"Y-m-d H:i:s" }}</td>
+                    <td class="py-4 px-6 text-slate-400 font-mono">{{ r.kode_hadiah }}</td>
+                    <td class="py-4 px-6 text-white">{{ r.nama_hadiah }}</td>
+                    <td class="py-4 px-6 text-right text-rose-400 font-bold">-{{ r.miles }}</td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="4" class="py-10 text-center text-slate-500">
+                        Belum ada riwayat redeem.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

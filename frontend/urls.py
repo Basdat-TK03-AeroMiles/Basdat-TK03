@@ -11,8 +11,14 @@ urlpatterns = [
     path('member/identitas/', views.manajemen_identitas_view, name='manajemen_identitas'),
     path('member/identitas/form/', views.form_identitas_view, name='form_identitas'),
     path('staf/member/form/', views.form_member_view, name='form_member'),
+    
+    path('member/redeem/', views.redeem_hadiah_view, name='redeem_hadiah'),
+    path('member/package/', views.beli_paket_view, name='beli_paket'),
+    path('member/tier/', views.info_tier_view, name='info_tier'),
 
     path('staf/mitra/', views.daftar_mitra, name='daftar_mitra'),
+    path('staf/transaksi/', views.laporan_transaksi_view, name='laporan_transaksi'),
+    path('staf/transaksi/hapus/<str:jenis>/<path:id1>/<path:id2>/<path:id3>/', views.hapus_transaksi_view, name='hapus_transaksi'),
     path('staf/mitra/tambah/', views.tambah_mitra, name='tambah_mitra'),
     path('staf/mitra/edit/<str:email_mitra>/', views.edit_mitra, name='edit_mitra'),
     path('staf/mitra/hapus/<str:email_mitra>/', views.hapus_mitra, name='hapus_mitra'),
