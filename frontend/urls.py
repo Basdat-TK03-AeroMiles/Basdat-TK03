@@ -10,8 +10,6 @@ urlpatterns = [
     
     path('staf/member/', views.manajemen_member_view, name='manajemen_member'),
     path('member/identitas/', views.manajemen_identitas_view, name='manajemen_identitas'),
-    path('member/identitas/form/', views.form_identitas_view, name='form_identitas'),
-    path('staf/member/form/', views.form_member_view, name='form_member'),
     
     path('member/redeem/', views.redeem_hadiah_view, name='redeem_hadiah'),
     path('member/package/', views.beli_paket_view, name='beli_paket'),

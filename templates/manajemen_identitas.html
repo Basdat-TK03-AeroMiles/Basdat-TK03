@@ -4,46 +4,185 @@
 <div class="max-w-7xl mx-auto px-4 py-10 w-full relative z-10">
     <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
         <div>
-            <h1 class="text-3xl font-extrabold text-white tracking-widest uppercase mb-2">Identitas Perjalanan</h1>
-            <p class="text-slate-400 text-sm tracking-wider">Kelola dokumen paspor atau KTP Anda untuk keperluan reservasi</p>
+            <h1 class="text-3xl font-extrabold text-white tracking-widest mb-2">Identitas Saya</h1>
+            <p class="text-slate-400 text-sm tracking-wider">Kelola dokumen paspor, KTP, atau SIM Anda untuk keperluan reservasi</p>
         </div>
-        <a href="{% url 'form_identitas' %}" class="bg-gradient-to-r from-electric/80 to-blue-600 hover:from-electric hover:to-blue-500 text-white font-bold py-2.5 px-6 rounded-xl shadow-lg shadow-electric/30 transition-all duration-300 flex items-center text-sm tracking-widest uppercase">
+        <button onclick="document.getElementById('modalTambahIdentitas').classList.remove('hidden')" class="bg-[#112a46] hover:bg-[#0a1a2c] text-white px-5 py-2.5 rounded-xl text-sm font-bold transition-all flex items-center shadow-lg border border-white/10">
             <i class="fa-solid fa-plus mr-2"></i> Tambah Identitas
-        </a>
+        </button>
     </div>
+
+    {% if messages %}
+        {% for message in messages %}
+            <div class="bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 px-4 py-3 rounded-xl text-sm mb-4">{{ message }}</div>
+        {% endfor %}
+    {% endif %}
 
     <div class="bg-white/5 border border-white/10 rounded-2xl overflow-hidden backdrop-blur-md shadow-2xl">
         <div class="overflow-x-auto">
             <table class="w-full text-left text-sm text-slate-300">
-                <thead class="bg-white/5 border-b border-white/10 text-xs uppercase font-bold text-electric tracking-widest">
+                <thead class="bg-white/5 border-b border-white/10 text-xs font-bold text-slate-400">
                     <tr>
-                        <th class="px-6 py-4">Jenis Dokumen</th>
-                        <th class="px-6 py-4">Nomor Identitas</th>
-                        <th class="px-6 py-4">Negara Penerbit</th>
-                        <th class="px-6 py-4">Tanggal Terbit</th>
-                        <th class="px-6 py-4">Tanggal Habis</th>
+                        <th class="px-6 py-4">No. Dokumen</th>
+                        <th class="px-6 py-4">Jenis</th>
+                        <th class="px-6 py-4">Negara</th>
+                        <th class="px-6 py-4">Terbit</th>
+                        <th class="px-6 py-4">Habis</th>
+                        <th class="px-6 py-4">Status</th>
                         <th class="px-6 py-4 text-center">Aksi</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-white/5">
+                    {% for identitas in identitas_list %}
                     <tr class="hover:bg-white/5 transition-colors">
-                        <td class="px-6 py-4 font-bold text-white tracking-wider uppercase">Paspor</td>
-                        <td class="px-6 py-4 font-mono text-electric">P-00123456</td>
-                        <td class="px-6 py-4">Indonesia (IDN)</td>
-                        <td class="px-6 py-4">01 Jan 2020</td>
-                        <td class="px-6 py-4">01 Jan 2030</td>
-                        <td class="px-6 py-4 text-center space-x-2">
-                            <a href="{% url 'form_identitas' %}" class="inline-block bg-white/10 hover:bg-electric hover:text-dsn text-white p-2 rounded-lg transition-all duration-300" title="Edit Identitas">
-                                <i class="fa-solid fa-pen-to-square"></i>
-                            </a>
-                            <button class="inline-block bg-white/10 hover:bg-rose-500 hover:text-white text-rose-400 p-2 rounded-lg transition-all duration-300" title="Hapus Identitas">
+                        <td class="px-6 py-4 font-bold text-white">{{ identitas.no_dokumen }}</td>
+                        <td class="px-6 py-4">{{ identitas.jenis }}</td>
+                        <td class="px-6 py-4">{{ identitas.negara }}</td>
+                        <td class="px-6 py-4 text-xs font-mono">{{ identitas.terbit }}</td>
+                        <td class="px-6 py-4 text-xs font-mono">{{ identitas.habis }}</td>
+                        <td class="px-6 py-4">
+                            {% if identitas.status == 'Aktif' %}
+                                <span class="px-2.5 py-1 bg-emerald-500/20 text-emerald-400 rounded-md border border-emerald-500/30 text-xs font-bold">{{ identitas.status }}</span>
+                            {% else %}
+                                <span class="px-2.5 py-1 bg-rose-500/20 text-rose-400 rounded-md border border-rose-500/30 text-xs font-bold">{{ identitas.status }}</span>
+                            {% endif %}
+                        </td>
+                        <td class="px-6 py-4 text-center">
+                            <button type="button" onclick="document.getElementById('modalEditIdentitas_{{ forloop.counter }}').classList.remove('hidden')" class="text-slate-400 hover:text-white mr-3 text-sm transition-colors" title="Edit">
+                                <i class="fa-solid fa-pen"></i>
+                            </button>
+                            <button type="button" onclick="document.getElementById('modalHapusIdentitas_{{ forloop.counter }}').classList.remove('hidden')" class="text-rose-400 hover:text-rose-300 text-sm transition-colors" title="Hapus">
                                 <i class="fa-solid fa-trash-can"></i>
                             </button>
                         </td>
                     </tr>
+                    {% empty %}
+                    <tr><td colspan="7" class="p-8 text-center text-slate-500">Belum ada identitas tersimpan.</td></tr>
+                    {% endfor %}
                 </tbody>
             </table>
         </div>
     </div>
 </div>
+
+<div id="modalTambahIdentitas" class="fixed inset-0 bg-black/60 backdrop-blur-sm hidden items-center justify-center z-50 p-4 flex">
+    <div class="bg-[#0d1b2a] border border-white/10 rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden">
+        <div class="p-6 flex justify-between items-center border-b border-white/5">
+            <h3 class="text-lg font-bold text-white">Tambah Identitas Baru</h3>
+            <button type="button" onclick="document.getElementById('modalTambahIdentitas').classList.add('hidden')" class="text-slate-500 hover:text-white transition-colors">
+                <i class="fa-solid fa-xmark text-lg"></i>
+            </button>
+        </div>
+        <form action="{% url 'manajemen_identitas' %}" method="POST" class="p-6 space-y-4">
+            {% csrf_token %}
+            <div>
+                <label class="block text-[11px] font-bold text-slate-400 mb-2">Nomor Dokumen</label>
+                <input type="text" name="no_dokumen" required class="w-full px-4 py-2.5 bg-white/5 border border-white/10 rounded-xl text-sm text-white focus:ring-2 focus:ring-[#112a46] outline-none transition-all">
+            </div>
+            <div>
+                <label class="block text-[11px] font-bold text-slate-400 mb-2">Jenis Dokumen</label>
+                <select name="jenis" class="w-full px-4 py-2.5 bg-white/5 border border-white/10 rounded-xl text-sm text-white focus:ring-2 focus:ring-[#112a46] outline-none transition-all appearance-none">
+                    <option value="KTP" class="bg-[#0d1b2a]">KTP</option>
+                    <option value="SIM" class="bg-[#0d1b2a]">SIM</option>
+                    <option value="Paspor" class="bg-[#0d1b2a]">Paspor</option>
+                </select>
+            </div>
+            <div>
+                <label class="block text-[11px] font-bold text-slate-400 mb-2">Negara Penerbit</label>
+                <select name="negara" class="w-full px-4 py-2.5 bg-white/5 border border-white/10 rounded-xl text-sm text-white focus:ring-2 focus:ring-[#112a46] outline-none transition-all appearance-none">
+                    <option value="Indonesia" class="bg-[#0d1b2a]">Indonesia</option>
+                    <option value="Malaysia" class="bg-[#0d1b2a]">Malaysia</option>
+                    <option value="Singapore" class="bg-[#0d1b2a]">Singapore</option>
+                </select>
+            </div>
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-[11px] font-bold text-slate-400 mb-2">Tanggal Terbit</label>
+                    <input type="date" name="terbit" required class="w-full px-4 py-2.5 bg-white/5 border border-white/10 rounded-xl text-sm text-white focus:ring-2 focus:ring-[#112a46] outline-none transition-all [color-scheme:dark]">
+                </div>
+                <div>
+                    <label class="block text-[11px] font-bold text-slate-400 mb-2">Tanggal Habis</label>
+                    <input type="date" name="habis" required class="w-full px-4 py-2.5 bg-white/5 border border-white/10 rounded-xl text-sm text-white focus:ring-2 focus:ring-[#112a46] outline-none transition-all [color-scheme:dark]">
+                </div>
+            </div>
+            <div class="flex justify-end gap-3 pt-4 border-t border-white/5 mt-4">
+                <button type="button" onclick="document.getElementById('modalTambahIdentitas').classList.add('hidden')" class="px-5 py-2 bg-white/5 border border-white/10 text-slate-400 rounded-xl text-sm font-bold hover:bg-white/10 transition-all">Batal</button>
+                <button type="submit" name="action" value="tambah" class="px-5 py-2 bg-[#112a46] hover:bg-[#0a1a2c] text-white border border-white/10 rounded-xl text-sm font-bold transition-all">Simpan</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+
+{% for identitas in identitas_list %}
+
+<div id="modalEditIdentitas_{{ forloop.counter }}" class="fixed inset-0 bg-black/60 backdrop-blur-sm hidden items-center justify-center z-50 p-4 flex">
+    <div class="bg-[#0d1b2a] border border-white/10 rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden">
+        <div class="p-6 flex justify-between items-center border-b border-white/5">
+            <h3 class="text-lg font-bold text-white">Edit Identitas</h3>
+            <button type="button" onclick="document.getElementById('modalEditIdentitas_{{ forloop.counter }}').classList.add('hidden')" class="text-slate-500 hover:text-white transition-colors">
+                <i class="fa-solid fa-xmark text-lg"></i>
+            </button>
+        </div>
+        <form action="{% url 'manajemen_identitas' %}" method="POST" class="p-6 space-y-4">
+            {% csrf_token %}
+            <input type="hidden" name="old_no_dokumen" value="{{ identitas.no_dokumen }}">
+            
+            <div>
+                <label class="block text-[11px] font-bold text-slate-400 mb-2">Nomor Dokumen</label>
+                <input type="text" name="no_dokumen" value="{{ identitas.no_dokumen }}" required class="w-full px-4 py-2.5 bg-white/5 border border-white/10 rounded-xl text-sm text-white focus:ring-2 focus:ring-[#112a46] outline-none transition-all">
+            </div>
+            <div>
+                <label class="block text-[11px] font-bold text-slate-400 mb-2">Jenis Dokumen</label>
+                <select name="jenis" class="w-full px-4 py-2.5 bg-white/5 border border-white/10 rounded-xl text-sm text-white focus:ring-2 focus:ring-[#112a46] outline-none transition-all appearance-none">
+                    <option value="KTP" class="bg-[#0d1b2a]" {% if identitas.jenis == 'KTP' %}selected{% endif %}>KTP</option>
+                    <option value="SIM" class="bg-[#0d1b2a]" {% if identitas.jenis == 'SIM' %}selected{% endif %}>SIM</option>
+                    <option value="Paspor" class="bg-[#0d1b2a]" {% if identitas.jenis == 'Paspor' %}selected{% endif %}>Paspor</option>
+                </select>
+            </div>
+            <div>
+                <label class="block text-[11px] font-bold text-slate-400 mb-2">Negara Penerbit</label>
+                <select name="negara" class="w-full px-4 py-2.5 bg-white/5 border border-white/10 rounded-xl text-sm text-white focus:ring-2 focus:ring-[#112a46] outline-none transition-all appearance-none">
+                    <option value="Indonesia" class="bg-[#0d1b2a]" {% if identitas.negara == 'Indonesia' %}selected{% endif %}>Indonesia</option>
+                    <option value="Malaysia" class="bg-[#0d1b2a]" {% if identitas.negara == 'Malaysia' %}selected{% endif %}>Malaysia</option>
+                </select>
+            </div>
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-[11px] font-bold text-slate-400 mb-2">Tanggal Terbit</label>
+                    <input type="date" name="terbit" value="{{ identitas.terbit|date:'Y-m-d' }}" required class="w-full px-4 py-2.5 bg-white/5 border border-white/10 rounded-xl text-sm text-white focus:ring-2 focus:ring-[#112a46] outline-none transition-all [color-scheme:dark]">
+                </div>
+                <div>
+                    <label class="block text-[11px] font-bold text-slate-400 mb-2">Tanggal Habis</label>
+                    <input type="date" name="habis" value="{{ identitas.habis|date:'Y-m-d' }}" required class="w-full px-4 py-2.5 bg-white/5 border border-white/10 rounded-xl text-sm text-white focus:ring-2 focus:ring-[#112a46] outline-none transition-all [color-scheme:dark]">
+                </div>
+            </div>
+            <div class="flex justify-end gap-3 pt-4 border-t border-white/5 mt-4">
+                <button type="button" onclick="document.getElementById('modalEditIdentitas_{{ forloop.counter }}').classList.add('hidden')" class="px-5 py-2 bg-white/5 border border-white/10 text-slate-400 rounded-xl text-sm font-bold hover:bg-white/10 transition-all">Batal</button>
+                <button type="submit" name="action" value="edit" class="px-5 py-2 bg-[#112a46] hover:bg-[#0a1a2c] text-white border border-white/10 rounded-xl text-sm font-bold transition-all">Simpan</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div id="modalHapusIdentitas_{{ forloop.counter }}" class="fixed inset-0 bg-black/60 backdrop-blur-sm hidden items-center justify-center z-50 p-4 flex">
+    <div class="bg-[#0d1b2a] border border-white/10 rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden">
+        <div class="p-6 border-b border-white/5 text-center">
+            <div class="w-16 h-16 bg-rose-500/20 text-rose-500 rounded-full flex items-center justify-center mx-auto mb-4 text-2xl">
+                <i class="fa-solid fa-triangle-exclamation"></i>
+            </div>
+            <h3 class="text-lg font-bold text-white mb-2">Hapus Identitas?</h3>
+            <p class="text-sm text-slate-400">Tindakan ini tidak dapat dibatalkan.</p>
+        </div>
+        <div class="p-6 flex justify-center gap-3">
+            <button type="button" onclick="document.getElementById('modalHapusIdentitas_{{ forloop.counter }}').classList.add('hidden')" class="px-5 py-2 bg-white/5 border border-white/10 text-slate-300 rounded-xl text-sm font-bold hover:bg-white/10 transition-all w-full">Batal</button>
+            <form action="{% url 'manajemen_identitas' %}" method="POST" class="w-full">
+                {% csrf_token %}
+                <input type="hidden" name="no_dokumen" value="{{ identitas.no_dokumen }}">
+                <button type="submit" name="action" value="hapus" class="px-5 py-2 bg-[#112a46] hover:bg-[#0a1a2c] text-white border border-white/10 rounded-xl text-sm font-bold transition-all w-full">Hapus</button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endfor %}
 {% endblock %}

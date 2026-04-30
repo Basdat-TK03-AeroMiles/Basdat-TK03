@@ -180,8 +180,44 @@ def manajemen_member_view(request):
     if role != 'staf':
         messages.error(request, 'Akses Ditolak: Halaman ini khusus untuk Staf.')
         return redirect('dashboard')
+
+    if request.method == 'POST':
+        action = request.POST.get('action')
         
-    return render(request, 'manajemen_member.html', {'role': role, 'name': name})
+        if action == 'tambah':
+            messages.success(request, 'Member dummy baru berhasil ditambahkan!')
+            
+        elif action == 'edit':
+            messages.success(request, 'Data member dummy berhasil diperbarui!')
+            
+        elif action == 'hapus':
+            messages.success(request, 'Member dummy berhasil dihapus!')
+            
+        return redirect('manajemen_member')
+        
+    dummy_members = [
+        {
+            'nomor_member': 'M0001', 'email': 'john@example.com', 'salutation': 'Mr.',
+            'nama_depan': 'John', 'nama_tengah': 'William', 'nama_belakang': 'Doe',
+            'kewarganegaraan': 'Indonesia', 'country_code': '+62', 'nomor_hp': '81234567890',
+            'tanggal_lahir': '1990-05-15', 'tier': 'Gold', 'total_miles': 45000, 
+            'award_miles': 32000, 'tanggal_bergabung': '2024-01-15'
+        },
+        {
+            'nomor_member': 'M0002', 'email': 'jane@example.com', 'salutation': 'Mrs.',
+            'nama_depan': 'Jane', 'nama_tengah': '', 'nama_belakang': 'Smith',
+            'kewarganegaraan': 'Indonesia', 'country_code': '+62', 'nomor_hp': '8987654321',
+            'tanggal_lahir': '1985-10-20', 'tier': 'Silver', 'total_miles': 20000, 
+            'award_miles': 15000, 'tanggal_bergabung': '2024-03-10'
+        }
+    ]
+
+    context = {
+        'role': role,
+        'name': name,
+        'member_list': dummy_members
+    }
+    return render(request, 'manajemen_member.html', context)
 
 
 def manajemen_identitas_view(request):
@@ -191,8 +227,36 @@ def manajemen_identitas_view(request):
     if role != 'member':
         messages.error(request, 'Akses Ditolak: Halaman ini khusus untuk Member.')
         return redirect('dashboard')
+
+    if request.method == 'POST':
+        action = request.POST.get('action')
         
-    return render(request, 'manajemen_identitas.html', {'role': role, 'name': name})
+        if action == 'tambah':
+            messages.success(request, 'Identitas baru berhasil ditambahkan!')
+        elif action == 'edit':
+            messages.success(request, 'Data identitas berhasil diperbarui!')
+        elif action == 'hapus':
+            messages.success(request, 'Identitas berhasil dihapus!')
+            
+        return redirect('manajemen_identitas')
+        
+    dummy_identitas = [
+        {
+            'no_dokumen': 'A12345678', 'jenis': 'Paspor', 'negara': 'Indonesia',
+            'terbit': '2020-01-15', 'habis': '2030-01-15', 'status': 'Aktif'
+        },
+        {
+            'no_dokumen': '3275012345678901', 'jenis': 'KTP', 'negara': 'Indonesia',
+            'terbit': '2019-06-01', 'habis': '2024-06-01', 'status': 'Kedaluwarsa'
+        }
+    ]
+
+    context = {
+        'role': role,
+        'name': name,
+        'identitas_list': dummy_identitas
+    }
+    return render(request, 'manajemen_identitas.html', context)
 
 
 def form_identitas_view(request):
