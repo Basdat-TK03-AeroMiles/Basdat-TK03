@@ -21,5 +21,10 @@ urlpatterns = [
     path('staf/hadiah/tambah/', views.tambah_hadiah, name='tambah_hadiah'),
     path('staf/hadiah/edit/<str:kode_hadiah>/', views.edit_hadiah, name='edit_hadiah'),
     path('staf/hadiah/hapus/<str:kode_hadiah>/', views.hapus_hadiah, name='hapus_hadiah'),
+
     path('pengaturan-profil/', views.pengaturan_profil_view, name='pengaturan_profil'),
+    path('klaim-miles/', views.klaim_miles_view, name='klaim_miles'),
+    path('klaim-miles/tambah/', views.ajukan_klaim, name='ajukan_klaim'),
+    path('klaim-miles/edit/<int:id>/', views.edit_klaim, name='edit_klaim'),
+    path('klaim-miles/hapus/<int:id>/', views.batalkan_klaim, name='batalkan_klaim'),
 ]

@@ -2,6 +2,7 @@ from django.shortcuts import render, redirect
 from django.contrib import messages
 import datetime
 
+# Mock function untuk menggantikan query database asli
 def execute_query(query, params=None, fetch=False):
     if fetch:
         return []
@@ -52,7 +53,8 @@ def dashboard_view(request):
     
     if not request.session.get('role'):
         return redirect('login')
-    
+
+    # Data profil umum [cite: 152, 330]
     user_dummy = {
         'salutation': 'Mr.',
         'first_mid_name': 'Jonathan Hans',
@@ -67,6 +69,7 @@ def dashboard_view(request):
     context = {'user': user_dummy, 'role': role, 'name': request.session.get('name')}
 
     if role == 'member':
+        # Data dummy untuk tampilan dashboard Member [cite: 157, 335]
         context['member'] = {
             'nomor_member': 'M2406',
             'nama_tier': 'Gold',
@@ -74,6 +77,7 @@ def dashboard_view(request):
             'award_miles': 32000,
             'tanggal_bergabung': datetime.date(2025, 9, 1)
         }
+        # Riwayat 5 transaksi terbaru [cite: 341]
         context['recent_transactions'] = [
             {'jenis': 'Transfer (Kirim)', 'waktu': datetime.datetime(2026, 4, 15, 10, 30), 'miles': -5000},
             {'jenis': 'Redeem', 'waktu': datetime.datetime(2026, 4, 20, 16, 0), 'miles': -3000},
@@ -81,7 +85,7 @@ def dashboard_view(request):
         ]
         
     elif role == 'staf':
-
+        # Data dummy untuk tampilan dashboard Staf [cite: 163, 376]
         context['staf'] = {
             'id_staf': 'S2406',
             'nama_maskapai': 'Garuda Indonesia'
@@ -97,6 +101,7 @@ def dashboard_view(request):
 def daftar_mitra(request):
     if request.session.get('role') != 'staf': return redirect('dashboard')
     
+    # List dummy mitra sesuai spesifikasi tugas [cite: 165, 191]
     mitra_list = [
         {'email_mitra': 'partner@traveloka.com', 'id_penyedia': 1, 'nama_mitra': 'Traveloka Partner', 'tanggal_kerja_sama': datetime.date(2023, 1, 15)},
         {'email_mitra': 'partner@plazapremium.com', 'id_penyedia': 2, 'nama_mitra': 'Plaza Premium', 'tanggal_kerja_sama': datetime.date(2023, 6, 1)},
@@ -120,6 +125,7 @@ def hapus_mitra(request, email_mitra):
 def daftar_hadiah(request):
     if request.session.get('role') != 'staf': return redirect('dashboard')
     
+    # List dummy hadiah sesuai spesifikasi tugas [cite: 186, 1104]
     hadiah_list = [
         {
             'kode_hadiah': 'RWD-001', 
@@ -237,3 +243,57 @@ def pengaturan_profil_view(request):
         'name': name, 
         'profile': profile_data
     })
+
+def klaim_miles_view(request):
+    role = request.session.get('role')
+    if role != 'member':
+        return redirect('dashboard')
+
+    klaim_list = [
+        {
+            'id': 1,
+            'maskapai': 'GA',
+            'bandara_asal': 'CGK',
+            'bandara_tujuan': 'DPS',
+            'tanggal_penerbangan': datetime.date(2024, 10, 1),
+            'flight_number': 'GA404',
+            'kelas_kabin': 'Business',
+            'status_penerimaan': 'Disetujui',
+            'timestamp': '2024-10-05 18:45:00'
+        },
+        {
+            'id': 2,
+            'maskapai': 'SQ',
+            'bandara_asal': 'SIN',
+            'bandara_tujuan': 'NRT',
+            'tanggal_penerbangan': datetime.date(2024, 11, 15),
+            'flight_number': 'SQ12',
+            'kelas_kabin': 'Economy',
+            'status_penerimaan': 'Menunggu',
+            'timestamp': '2024-11-20 18:45:00'
+        },
+    ]
+
+    context = {
+        'role': role,
+        'name': request.session.get('name'),
+        'klaim_list': klaim_list,
+        'maskapai_choices': ['GA', 'SQ', 'MH'],
+        'bandara_choices': ['CGK', 'SIN', 'DPS', 'NRT'],
+        'kelas_choices': ['Economy', 'Business', 'First']
+    }
+    return render(request, 'klaim_miles.html', context)
+
+def ajukan_klaim(request):
+    if request.method == 'POST':
+        messages.success(request, 'Klaim berhasil diajukan!')
+    return redirect('klaim_miles')
+
+def edit_klaim(request, id):
+    if request.method == 'POST':
+        messages.success(request, f'Klaim ID {id} berhasil diupdate!')
+    return redirect('klaim_miles')
+
+def batalkan_klaim(request, id):
+    messages.success(request, f'Klaim ID {id} berhasil dihapus!')
+    return redirect('klaim_miles')
