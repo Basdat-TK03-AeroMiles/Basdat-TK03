@@ -57,7 +57,9 @@
                         <a href="{% url 'klaim_miles' %}" class="flex items-center text-sm font-medium text-slate-300 hover:text-electric hover:bg-white/5 rounded-lg px-3 py-2 transition-all duration-300 whitespace-nowrap">
                             <i class="fa-solid fa-file-circle-plus text-lg mr-2 opacity-70"></i>Klaim Miles
                         </a>
-                        
+                        <a href="{% url 'transfer_miles' %}" class="flex items-center text-sm font-medium text-slate-300 hover:text-electric hover:bg-white/5 rounded-lg px-3 py-2 transition-all duration-300 whitespace-nowrap {% if request.resolver_match.url_name == 'transfer_miles' %}bg-white/5 border border-white/10 text-electric{% endif %}">
+                            <i class="fa-solid fa-paper-plane text-lg mr-2 opacity-70 {% if request.resolver_match.url_name == 'transfer_miles' %}text-electric{% endif %}"></i>Transfer Miles
+                        </a>
                         <a href="#" class="flex items-center text-sm font-medium text-slate-300 hover:text-electric hover:bg-white/5 rounded-lg px-3 py-2 transition-all duration-300 whitespace-nowrap"><i class="fa-solid fa-gift text-lg mr-2 opacity-70"></i>Rewards</a>
                         <a href="#" class="flex items-center text-sm font-medium text-slate-300 hover:text-electric hover:bg-white/5 rounded-lg px-3 py-2 transition-all duration-300 whitespace-nowrap"><i class="fa-solid fa-plane-up text-lg mr-2 opacity-70"></i>Travel</a>
                         <a href="{% url 'manajemen_identitas' %}" class="flex items-center text-sm font-medium text-slate-300 hover:text-electric hover:bg-white/5 rounded-lg px-3 py-2 transition-all duration-300 whitespace-nowrap"><i class="fa-regular fa-id-card text-lg mr-2 opacity-70"></i>Identitas</a>

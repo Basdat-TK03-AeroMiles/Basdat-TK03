@@ -353,3 +353,38 @@ def tolak_klaim(request, pk):
     if request.method == 'POST':
         messages.error(request, f'Klaim CLM-00{pk} telah ditolak.')
     return redirect('kelola_klaim_staf')
+
+def transfer_miles(request):
+    riwayat_transfer = [
+        {
+            'waktu': '2025-01-15 10:30',
+            'nama_member': 'Jane Smith',
+            'email_member': 'jane@example.com',
+            'jumlah': -5000,
+            'catatan': 'Hadiah ulang tahun',
+            'tipe': 'Kirim'
+        },
+        {
+            'waktu': '2025-02-01 14:00',
+            'nama_member': 'Budi A. Santoso',
+            'email_member': 'budi@example.com',
+            'jumlah': 2000,
+            'catatan': '-',
+            'tipe': 'Terima'
+        }
+    ]
+    
+    context = {
+        'riwayat_transfer': riwayat_transfer,
+        'award_miles_tersedia': "32,000"
+    }
+    return render(request, 'transfer_miles.html', context)
+
+def proses_transfer(request):
+    if request.method == 'POST':
+        email = request.POST.get('email_penerima')
+        jumlah = request.POST.get('jumlah_miles')
+        
+        messages.success(request, f'Berhasil mengirim {jumlah} miles ke {email}!')
+        
+    return redirect('transfer_miles')

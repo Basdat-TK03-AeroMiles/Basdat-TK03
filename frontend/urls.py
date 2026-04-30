@@ -31,4 +31,7 @@ urlpatterns = [
     path('staf/kelola-klaim/', views.kelola_klaim_staf, name='kelola_klaim_staf'),
     path('staf/klaim/setujui/<int:pk>/', views.setujui_klaim, name='setujui_klaim'),
     path('staf/klaim/tolak/<int:pk>/', views.tolak_klaim, name='tolak_klaim'),
+
+    path('transfer-miles/', views.transfer_miles, name='transfer_miles'),
+    path('transfer-miles/proses/', views.proses_transfer, name='proses_transfer'),
 ]
