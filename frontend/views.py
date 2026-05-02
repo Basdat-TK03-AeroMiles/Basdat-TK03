@@ -1,33 +1,42 @@
 from django.shortcuts import render, redirect
 from django.contrib import messages
 import datetime
+import psycopg2
+from psycopg2.extras import RealDictCursor
 
+# Fungsi untuk membuka koneksi ke Supabase
+def get_db_connection():
+    return psycopg2.connect(
+        host="aws-1-ap-northeast-1.pooler.supabase.com",
+        database="postgres",
+        user="postgres.bragfwhkwwwulxfdsiqm",
+        password="Nainggolan123",
+        port="6543",
+        options="-c search_path=aeromiles"
+    )
+
+# Fungsi utama untuk menjalankan query SQL
 def execute_query(query, params=None, fetch=False):
-    if fetch:
-        return []
-    return None
-
-DUMMY_PROFILES = {
-    'member@aeromiles.com': {
-        'salutation': 'Mr.', 'first_mid_name': 'John William', 'last_name': 'Doe',
-        'email': 'member@aeromiles.com', 'kewarganegaraan': 'Indonesia',
-        'tanggal_lahir': datetime.date(1995, 1, 1), 'country_code': '+62', 'mobile_number': '81234567890',
-        'role': 'member',
-        'member': {
-            'nomor_member': 'M0001', 'nama_tier': 'Gold', 'total_miles': 45000,
-            'award_miles': 32000, 'tanggal_bergabung': datetime.date(2024, 1, 15),
-        },
-    },
-    'admin@aeromiles.com': {
-        'salutation': 'Mr.', 'first_mid_name': 'Admin', 'last_name': 'Aero',
-        'email': 'admin@aeromiles.com', 'kewarganegaraan': 'Indonesia',
-        'tanggal_lahir': datetime.date(1990, 5, 20), 'country_code': '+62', 'mobile_number': '81298765432',
-        'role': 'staf',
-        'staf': {
-            'id_staf': 'S0001', 'nama_maskapai': 'Garuda Indonesia',
-        },
-    },
-}
+    conn = get_db_connection()
+    # RealDictCursor agar hasil fetch berbentuk dictionary (mirip JSON), lebih mudah dibaca di template HTML
+    cursor = conn.cursor(cursor_factory=RealDictCursor) 
+    
+    try:
+        cursor.execute(query, params)
+        if fetch:
+            result = cursor.fetchall()
+            conn.commit()
+            return result
+        else:
+            conn.commit() # Commit untuk operasi INSERT, UPDATE, DELETE
+            return None
+    except Exception as e:
+        conn.rollback() # Batalkan jika ada error
+        print(f"Database Error: {e}")
+        raise e
+    finally:
+        cursor.close()
+        conn.close()
 
 def landing_view(request):
     if request.session.get('role'):
@@ -35,25 +44,49 @@ def landing_view(request):
     return render(request, 'landing.html')
 
 def login_view(request):
+    # Jika sudah login, langsung lempar ke dashboard
     if request.session.get('role'):
         return redirect('dashboard')
-
+        
     if request.method == 'POST':
         email = request.POST.get('email')
         password = request.POST.get('password')
-
-        if email == 'admin@aeromiles.com' and password == 'admin123':
-            request.session['role'] = 'staf'
-            request.session['name'] = 'Mr. Admin Aero'
-            request.session['email'] = email
-            return redirect('dashboard')
-        elif email == 'member@aeromiles.com' and password == 'member123':
-            request.session['role'] = 'member'
-            request.session['name'] = 'Mr. John William Doe'
-            request.session['email'] = email
-            return redirect('dashboard')
-        else:
-            messages.error(request, 'Email atau password salah!')
+        
+        try:
+            # 1. Cek kredensial dengan memanggil Stored Procedure di Supabase
+            # SP ini akan otomatis melemparkan (RAISE EXCEPTION) jika email/pass salah
+            query_user = "SELECT * FROM verify_login(%s, %s)"
+            user_data = execute_query(query_user, [email, password], fetch=True)
+            
+            # Jika tidak ada exception, artinya login berhasil
+            if user_data:
+                user = user_data[0]
+                
+                # 2. Tentukan Role dengan mengecek tabel MEMBER dan STAF
+                cek_member = execute_query("SELECT email FROM member WHERE email = %s", [email], fetch=True)
+                
+                if cek_member:
+                    role = 'member'
+                else:
+                    cek_staf = execute_query("SELECT email FROM staf WHERE email = %s", [email], fetch=True)
+                    if cek_staf:
+                        role = 'staf'
+                    else:
+                        messages.error(request, 'Akun ditemukan, tetapi tidak terdaftar sebagai Member maupun Staf.')
+                        return redirect('login')
+                        
+                # 3. Simpan data penting ke Session Django
+                request.session['role'] = role
+                request.session['email'] = user['email']
+                request.session['name'] = f"{user['salutation']} {user['first_mid_name']} {user['last_name']}".strip()
+                
+                return redirect('dashboard')
+                
+        except Exception as e:
+            # Mengambil dan memotong string error bawaan psycopg2 
+            # agar hanya memunculkan pesan "Email atau password salah, silakan coba lagi." dari Supabase
+            error_msg = str(e).split('\n')[0].replace('P0001: ', '').strip()
+            messages.error(request, error_msg)
             return redirect('login')
             
     return render(request, 'login.html')
@@ -65,8 +98,51 @@ def register_view(request):
     if request.method == 'POST':
         role = request.POST.get('role', 'member')
         email = request.POST.get('email')
-        messages.success(request, f'Registrasi berhasil untuk {email} sebagai {role.title()}. Silakan login.')
-        return redirect('login')
+        password = request.POST.get('password')
+        salutation = request.POST.get('salutation')
+        first_mid_name = request.POST.get('first_mid_name')
+        last_name = request.POST.get('last_name')
+        country_code = request.POST.get('country_code')
+        mobile_number = request.POST.get('mobile_number')
+        tanggal_lahir = request.POST.get('tanggal_lahir')
+        kewarganegaraan = request.POST.get('kewarganegaraan')
+        
+        try:
+            if role == 'member':
+                query_reg = """
+                    WITH new_user AS (
+                        INSERT INTO pengguna (email, password, salutation, first_mid_name, last_name, country_code, mobile_number, tanggal_lahir, kewarganegaraan)
+                        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
+                        RETURNING email
+                    )
+                    INSERT INTO member (email, tanggal_bergabung, id_tier, award_miles, total_miles) 
+                    VALUES ((SELECT email FROM new_user), CURRENT_DATE, 'T01', 0, 0)
+                """
+                params = [email, password, salutation, first_mid_name, last_name, country_code, mobile_number, tanggal_lahir, kewarganegaraan]
+                execute_query(query_reg, params)
+                
+            elif role == 'staf':
+                kode_maskapai = request.POST.get('kode_maskapai')
+                query_reg = """
+                    WITH new_user AS (
+                        INSERT INTO pengguna (email, password, salutation, first_mid_name, last_name, country_code, mobile_number, tanggal_lahir, kewarganegaraan)
+                        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
+                        RETURNING email
+                    )
+                    INSERT INTO staf (email, kode_maskapai) 
+                    VALUES ((SELECT email FROM new_user), %s)
+                """
+                params = [email, password, salutation, first_mid_name, last_name, country_code, mobile_number, tanggal_lahir, kewarganegaraan, kode_maskapai]
+                execute_query(query_reg, params)
+                
+            messages.success(request, f'Registrasi berhasil untuk {email} sebagai {role.title()}. Silakan login.')
+            return redirect('login')
+            
+        except Exception as e:
+            # Mengambil dan memotong string error bawaan psycopg2 agar hanya pesan dari Trigger yang muncul
+            error_msg = str(e).split('\n')[0].replace('P0001: ', '')
+            messages.error(request, error_msg)
+            return redirect('register')
             
     return render(request, 'register.html')
 
@@ -81,95 +157,212 @@ def dashboard_view(request):
     if not role:
         return redirect('login')
 
-    profile = DUMMY_PROFILES.get(email, {})
-    name = f"{profile.get('salutation', '')} {profile.get('first_mid_name', '')} {profile.get('last_name', '')}".strip()
-    request.session['name'] = name
-    context = {'user': profile, 'role': role, 'name': name}
+    context = {'role': role, 'name': request.session.get('name')}
 
     if role == 'member':
-        context['member'] = profile.get('member', {})
-        context['recent_transactions'] = [
-            {'jenis': 'Transfer (Kirim)', 'waktu': datetime.datetime(2026, 4, 15, 10, 30), 'miles': -5000},
-            {'jenis': 'Redeem', 'waktu': datetime.datetime(2026, 4, 20, 16, 0), 'miles': -3000},
-            {'jenis': 'Package', 'waktu': datetime.datetime(2026, 4, 25, 8, 0), 'miles': 10000},
-        ]
+        # Query disesuaikan dengan kolom first_mid_name, last_name, mobile_number
+        # Serta join ke tabel tier untuk mendapatkan nama_tier
+        query_member = """
+            SELECT p.salutation, p.first_mid_name, p.last_name,
+                   p.kewarganegaraan, p.tanggal_lahir, p.country_code, p.mobile_number, p.email,
+                   m.nomor_member, m.total_miles, m.award_miles, m.tanggal_bergabung, t.nama as nama_tier
+            FROM pengguna p
+            JOIN member m ON p.email = m.email
+            JOIN tier t ON m.id_tier = t.id_tier
+            WHERE p.email = %s
+        """
+        member_data = execute_query(query_member, [email], fetch=True)
         
+        if member_data:
+            context['user'] = member_data[0]
+            context['member'] = member_data[0]
+        
+        # Query disesuaikan dengan tabel redeem, transfer, dan member_award_miles_package dari SQL Dump
+        query_transaksi = """
+            SELECT jenis, waktu, miles 
+            FROM (
+                SELECT 'Redeem' as jenis, r.timestamp as waktu, -(h.miles) as miles 
+                FROM redeem r 
+                JOIN hadiah h ON r.kode_hadiah = h.kode_hadiah 
+                WHERE r.email_member = %s
+                
+                UNION ALL
+                
+                SELECT 'Transfer (Kirim)' as jenis, timestamp as waktu, -(jumlah) as miles 
+                FROM transfer 
+                WHERE email_member_1 = %s
+                
+                UNION ALL
+                
+                SELECT 'Beli Package' as jenis, p.timestamp as waktu, a.jumlah_award_miles as miles 
+                FROM member_award_miles_package p 
+                JOIN award_miles_package a ON p.id_award_miles_package = a.id 
+                WHERE p.email_member = %s
+            ) AS riwayat
+            ORDER BY waktu DESC LIMIT 5
+        """
+        context['recent_transactions'] = execute_query(query_transaksi, [email, email, email], fetch=True)
+
     elif role == 'staf':
-        context['staf'] = profile.get('staf', {})
-        context['klaim'] = {
-            'menunggu': 2,
-            'disetujui': 5,
-            'ditolak': 1
-        }
+        # Menyesuaikan query staf dan JOIN ke maskapai untuk nama_maskapai
+        query_staf = """
+            SELECT p.salutation, p.first_mid_name, p.last_name,
+                   p.kewarganegaraan, p.tanggal_lahir, p.country_code, p.mobile_number, p.email,
+                   s.id_staf, mas.nama_maskapai
+            FROM pengguna p
+            JOIN staf s ON p.email = s.email
+            JOIN maskapai mas ON s.kode_maskapai = mas.kode_maskapai
+            WHERE p.email = %s
+        """
+        staf_data = execute_query(query_staf, [email], fetch=True)
+        
+        if staf_data:
+            context['user'] = staf_data[0]
+            context['staf'] = staf_data[0]
+
+        # Menyesuaikan nama tabel menjadi claim_missing_miles
+        query_klaim = """
+            SELECT 
+                COUNT(CASE WHEN status_penerimaan = 'Menunggu' THEN 1 END) as menunggu,
+                COUNT(CASE WHEN status_penerimaan = 'Disetujui' THEN 1 END) as disetujui,
+                COUNT(CASE WHEN status_penerimaan = 'Ditolak' THEN 1 END) as ditolak
+            FROM claim_missing_miles
+        """
+        klaim_data = execute_query(query_klaim, fetch=True)
+        if klaim_data:
+            context['klaim'] = klaim_data[0]
 
     return render(request, 'dashboard.html', context)
 
 def daftar_mitra(request):
     if request.session.get('role') != 'staf': return redirect('dashboard')
     
-    mitra_list = [
-        {'email_mitra': 'partner@traveloka.com', 'id_penyedia': 1, 'nama_mitra': 'Traveloka Partner', 'tanggal_kerja_sama': datetime.date(2023, 1, 15)},
-        {'email_mitra': 'partner@plazapremium.com', 'id_penyedia': 2, 'nama_mitra': 'Plaza Premium', 'tanggal_kerja_sama': datetime.date(2023, 6, 1)},
-    ]
+    query = """
+        SELECT m.email_mitra, m.id_penyedia, m.nama_mitra, m.tanggal_kerja_sama 
+        FROM MITRA m
+        ORDER BY m.tanggal_kerja_sama DESC
+    """
+    mitra_list = execute_query(query, fetch=True)
     return render(request, 'mitra.html', {'mitra_list': mitra_list})
 
 def tambah_mitra(request):
     if request.method == 'POST':
-        messages.success(request, 'Mitra dummy berhasil ditambahkan.')
-        return redirect('daftar_mitra')
+        email = request.POST.get('email')
+        nama = request.POST.get('nama')
+        tanggal = request.POST.get('tanggal')
+        
+        try:
+            # Asumsi: Insert ke superclass PENYEDIA dulu untuk dapat id_penyedia
+            insert_query = """
+                WITH new_penyedia AS (
+                    INSERT INTO PENYEDIA (nama_penyedia) VALUES (%s) RETURNING id
+                )
+                INSERT INTO MITRA (email_mitra, id_penyedia, nama_mitra, tanggal_kerja_sama) 
+                VALUES (%s, (SELECT id FROM new_penyedia), %s, %s)
+            """
+            execute_query(insert_query, [nama, email, nama, tanggal])
+            messages.success(request, 'Mitra berhasil ditambahkan.')
+        except Exception as e:
+            # Memunculkan pesan trigger dari Supabase jika ada (misal: duplikat)
+            messages.error(request, f'{e}')
+            
+    return redirect('daftar_mitra')
 
 def edit_mitra(request, email_mitra):
     if request.method == 'POST':
-        messages.success(request, 'Mitra dummy berhasil diubah.')
+        nama = request.POST.get('nama')
+        tanggal = request.POST.get('tanggal')
+        try:
+            execute_query("""
+                UPDATE MITRA 
+                SET nama_mitra = %s, tanggal_kerja_sama = %s 
+                WHERE email_mitra = %s
+            """, [nama, tanggal, email_mitra])
+            messages.success(request, 'Mitra berhasil diubah.')
+        except Exception as e:
+            messages.error(request, f'{e}')
+            
     return redirect('daftar_mitra')
 
 def hapus_mitra(request, email_mitra):
-    messages.success(request, 'Mitra dummy berhasil dihapus.')
+    if request.method == 'POST':
+        try:
+            execute_query("DELETE FROM MITRA WHERE email_mitra = %s", [email_mitra])
+            messages.success(request, 'Mitra berhasil dihapus.')
+        except Exception as e:
+            messages.error(request, f'{e}')
+            
     return redirect('daftar_mitra')
 
 def daftar_hadiah(request):
     if request.session.get('role') != 'staf': return redirect('dashboard')
     
-    hadiah_list = [
-        {
-            'kode_hadiah': 'RWD-001', 
-            'nama': 'Tiket Domestik PP', 
-            'nama_penyedia': 'Garuda Indonesia', 
-            'miles': 15000, 
-            'deskripsi': 'Tiket pulang-pergi rute domestik.',
-            'valid_start_date': datetime.date(2024, 1, 1),
-            'program_end': datetime.date(2025, 12, 31)
-        },
-        {
-            'kode_hadiah': 'RWD-003', 
-            'nama': 'Voucher Hotel', 
-            'nama_penyedia': 'Traveloka Partner', 
-            'miles': 5000, 
-            'deskripsi': 'Voucher menginap hotel.',
-            'valid_start_date': datetime.date(2024, 6, 1),
-            'program_end': datetime.date(2025, 6, 30)
-        },
-    ]
+    query_hadiah = """
+        SELECT h.kode_hadiah, h.nama, h.miles, h.deskripsi, h.valid_start_date, h.program_end, 
+               h.id_penyedia, p.nama_penyedia 
+        FROM HADIAH h
+        JOIN PENYEDIA p ON h.id_penyedia = p.id
+        ORDER BY h.valid_start_date DESC
+    """
+    hadiah_list = execute_query(query_hadiah, fetch=True)
     
-    penyedia_list = [
-        {'id': 1, 'nama_penyedia': 'Traveloka Partner'},
-        {'id': 2, 'nama_penyedia': 'Garuda Indonesia'},
-    ]
+    query_penyedia = "SELECT id, nama_penyedia FROM PENYEDIA"
+    penyedia_list = execute_query(query_penyedia, fetch=True)
     
     return render(request, 'hadiah.html', {'hadiah_list': hadiah_list, 'penyedia_list': penyedia_list})
 
 def tambah_hadiah(request):
     if request.method == 'POST':
-        messages.success(request, 'Hadiah dummy berhasil ditambahkan.')
-        return redirect('daftar_hadiah')
+        kode = request.POST.get('kode_hadiah')
+        nama = request.POST.get('nama')
+        id_penyedia = request.POST.get('id_penyedia')
+        miles = request.POST.get('miles')
+        deskripsi = request.POST.get('deskripsi')
+        start_date = request.POST.get('valid_start_date')
+        end_date = request.POST.get('program_end')
+        
+        query = """
+            INSERT INTO HADIAH (kode_hadiah, nama, id_penyedia, miles, deskripsi, valid_start_date, program_end)
+            VALUES (%s, %s, %s, %s, %s, %s, %s)
+        """
+        try:
+            execute_query(query, [kode, nama, id_penyedia, miles, deskripsi, start_date, end_date])
+            messages.success(request, 'Hadiah berhasil ditambahkan.')
+        except Exception as e:
+            messages.error(request, f'{e}')
+            
+    return redirect('daftar_hadiah')
 
 def edit_hadiah(request, kode_hadiah):
     if request.method == 'POST':
-        messages.success(request, 'Hadiah dummy berhasil diubah.')
+        nama = request.POST.get('nama')
+        id_penyedia = request.POST.get('id_penyedia')
+        miles = request.POST.get('miles')
+        deskripsi = request.POST.get('deskripsi')
+        start_date = request.POST.get('valid_start_date')
+        end_date = request.POST.get('program_end')
+        
+        query = """
+            UPDATE HADIAH 
+            SET nama = %s, id_penyedia = %s, miles = %s, deskripsi = %s, valid_start_date = %s, program_end = %s
+            WHERE kode_hadiah = %s
+        """
+        try:
+            execute_query(query, [nama, id_penyedia, miles, deskripsi, start_date, end_date, kode_hadiah])
+            messages.success(request, 'Hadiah berhasil diubah.')
+        except Exception as e:
+            messages.error(request, f'{e}')
+            
     return redirect('daftar_hadiah')
 
 def hapus_hadiah(request, kode_hadiah):
-    messages.success(request, 'Hadiah dummy berhasil dihapus.')
+    if request.method == 'POST':
+        try:
+            execute_query("DELETE FROM HADIAH WHERE kode_hadiah = %s", [kode_hadiah])
+            messages.success(request, 'Hadiah berhasil dihapus.')
+        except Exception as e:
+            messages.error(request, f'{e}')
+            
     return redirect('daftar_hadiah')
 
 
