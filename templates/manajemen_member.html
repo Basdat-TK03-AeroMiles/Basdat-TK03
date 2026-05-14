@@ -27,10 +27,9 @@
                 <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Filter Tier</label>
                 <select name="tier" class="w-full px-4 py-2.5 bg-white/5 border border-white/10 rounded-xl text-sm text-white focus:ring-2 focus:ring-electric/50 outline-none transition-all appearance-none">
                     <option value="">Semua Tier</option>
-                    <option value="Blue" {% if filter_tier == 'Blue' %}selected{% endif %} class="bg-[#0d1b2a]">Blue</option>
-                    <option value="Silver" {% if filter_tier == 'Silver' %}selected{% endif %} class="bg-[#0d1b2a]">Silver</option>
-                    <option value="Gold" {% if filter_tier == 'Gold' %}selected{% endif %} class="bg-[#0d1b2a]">Gold</option>
-                    <option value="Platinum" {% if filter_tier == 'Platinum' %}selected{% endif %} class="bg-[#0d1b2a]">Platinum</option>
+                    {% for tier in tier_choices %}
+                    <option value="{{ tier.nama }}" {% if filter_tier == tier.nama %}selected{% endif %} class="bg-[#0d1b2a]">{{ tier.nama }}</option>
+                    {% endfor %}
                 </select>
             </div>
             <div class="flex gap-3">
@@ -194,6 +193,7 @@
                 <select name="salutation" class="w-full px-4 py-2.5 bg-white/5 border border-white/10 rounded-xl text-sm text-white focus:ring-2 focus:ring-electric/50 outline-none transition-all appearance-none">
                     <option value="Mr." class="bg-[#0d1b2a]" {% if member.salutation == 'Mr.' %}selected{% endif %}>Mr.</option>
                     <option value="Mrs." class="bg-[#0d1b2a]" {% if member.salutation == 'Mrs.' %}selected{% endif %}>Mrs.</option>
+                    <option value="Ms." class="bg-[#0d1b2a]" {% if member.salutation == 'Ms.' %}selected{% endif %}>Ms.</option>
                 </select>
             </div>
             <div class="grid grid-cols-2 gap-4">
@@ -238,10 +238,9 @@
                 <div>
                     <label class="block text-[10px] font-bold text-amber-400 uppercase tracking-widest mb-2">Tier Status</label>
                     <select name="tier" class="w-full px-4 py-2.5 bg-amber-500/10 border border-amber-500/30 rounded-xl text-sm text-white focus:ring-2 focus:ring-amber-400 outline-none transition-all appearance-none">
-                        <option value="Blue" class="bg-[#0d1b2a]" {% if member.tier == 'Blue' %}selected{% endif %}>Blue (T01)</option>
-                        <option value="Silver" class="bg-[#0d1b2a]" {% if member.tier == 'Silver' %}selected{% endif %}>Silver (T02)</option>
-                        <option value="Gold" class="bg-[#0d1b2a]" {% if member.tier == 'Gold' %}selected{% endif %}>Gold (T03)</option>
-                        <option value="Platinum" class="bg-[#0d1b2a]" {% if member.tier == 'Platinum' %}selected{% endif %}>Platinum (T04)</option>
+                        {% for tier in tier_choices %}
+                        <option value="{{ tier.nama }}" class="bg-[#0d1b2a]" {% if member.tier == tier.nama %}selected{% endif %}>{{ tier.nama }} ({{ tier.id_tier }})</option>
+                        {% endfor %}
                     </select>
                 </div>
             </div>

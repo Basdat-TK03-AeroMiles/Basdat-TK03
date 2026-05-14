@@ -4,7 +4,14 @@ import datetime
 import psycopg2
 from psycopg2.extras import RealDictCursor
 
-# Fungsi untuk membuka koneksi ke Supabase
+COUNTRY_NAME_TO_CODE = {
+    'Indonesia': 'IDN',
+    'Malaysia': 'MYS',
+    'Singapore': 'SGP',
+}
+
+COUNTRY_CODE_TO_NAME = {code: name for name, code in COUNTRY_NAME_TO_CODE.items()}
+
 def get_db_connection():
     return psycopg2.connect(
         host="aws-1-ap-northeast-1.pooler.supabase.com",
@@ -15,10 +22,8 @@ def get_db_connection():
         options="-c search_path=aeromiles"
     )
 
-# Fungsi utama untuk menjalankan query SQL
 def execute_query(query, params=None, fetch=False):
     conn = get_db_connection()
-    # RealDictCursor agar hasil fetch berbentuk dictionary (mirip JSON), lebih mudah dibaca di template HTML
     cursor = conn.cursor(cursor_factory=RealDictCursor) 
     
     try:
@@ -28,15 +33,38 @@ def execute_query(query, params=None, fetch=False):
             conn.commit()
             return result
         else:
-            conn.commit() # Commit untuk operasi INSERT, UPDATE, DELETE
+            conn.commit()
             return None
     except Exception as e:
-        conn.rollback() # Batalkan jika ada error
+        conn.rollback()
         print(f"Database Error: {e}")
         raise e
     finally:
         cursor.close()
         conn.close()
+
+
+def format_db_error(error):
+    return str(error).split('\n')[0].replace('P0001: ', '').strip()
+
+
+def split_first_middle_name(full_name):
+    parts = (full_name or '').split()
+    if not parts:
+        return '', ''
+    return parts[0], ' '.join(parts[1:])
+
+
+def combine_first_middle_name(first_name, middle_name):
+    return ' '.join(part for part in [first_name.strip(), middle_name.strip()] if part).strip()
+
+
+def country_name_from_code(country_code):
+    return COUNTRY_CODE_TO_NAME.get(country_code, country_code)
+
+
+def country_code_from_name(country_name):
+    return COUNTRY_NAME_TO_CODE.get(country_name, country_name)
 
 def landing_view(request):
     if request.session.get('role'):
@@ -44,7 +72,6 @@ def landing_view(request):
     return render(request, 'landing.html')
 
 def login_view(request):
-    # Jika sudah login, langsung lempar ke dashboard
     if request.session.get('role'):
         return redirect('dashboard')
         
@@ -53,16 +80,12 @@ def login_view(request):
         password = request.POST.get('password')
         
         try:
-            # 1. Cek kredensial dengan memanggil Stored Procedure di Supabase
-            # SP ini akan otomatis melemparkan (RAISE EXCEPTION) jika email/pass salah
             query_user = "SELECT * FROM verify_login(%s, %s)"
             user_data = execute_query(query_user, [email, password], fetch=True)
             
-            # Jika tidak ada exception, artinya login berhasil
             if user_data:
                 user = user_data[0]
                 
-                # 2. Tentukan Role dengan mengecek tabel MEMBER dan STAF
                 cek_member = execute_query("SELECT email FROM member WHERE email = %s", [email], fetch=True)
                 
                 if cek_member:
@@ -75,7 +98,6 @@ def login_view(request):
                         messages.error(request, 'Akun ditemukan, tetapi tidak terdaftar sebagai Member maupun Staf.')
                         return redirect('login')
                         
-                # 3. Simpan data penting ke Session Django
                 request.session['role'] = role
                 request.session['email'] = user['email']
                 request.session['name'] = f"{user['salutation']} {user['first_mid_name']} {user['last_name']}".strip()
@@ -83,8 +105,6 @@ def login_view(request):
                 return redirect('dashboard')
                 
         except Exception as e:
-            # Mengambil dan memotong string error bawaan psycopg2 
-            # agar hanya memunculkan pesan "Email atau password salah, silakan coba lagi." dari Supabase
             error_msg = str(e).split('\n')[0].replace('P0001: ', '').strip()
             messages.error(request, error_msg)
             return redirect('login')
@@ -139,7 +159,6 @@ def register_view(request):
             return redirect('login')
             
         except Exception as e:
-            # Mengambil dan memotong string error bawaan psycopg2 agar hanya pesan dari Trigger yang muncul
             error_msg = str(e).split('\n')[0].replace('P0001: ', '')
             messages.error(request, error_msg)
             return redirect('register')
@@ -160,8 +179,6 @@ def dashboard_view(request):
     context = {'role': role, 'name': request.session.get('name')}
 
     if role == 'member':
-        # Query disesuaikan dengan kolom first_mid_name, last_name, mobile_number
-        # Serta join ke tabel tier untuk mendapatkan nama_tier
         query_member = """
             SELECT p.salutation, p.first_mid_name, p.last_name,
                    p.kewarganegaraan, p.tanggal_lahir, p.country_code, p.mobile_number, p.email,
@@ -177,7 +194,6 @@ def dashboard_view(request):
             context['user'] = member_data[0]
             context['member'] = member_data[0]
         
-        # Query disesuaikan dengan tabel redeem, transfer, dan member_award_miles_package dari SQL Dump
         query_transaksi = """
             SELECT jenis, waktu, miles 
             FROM (
@@ -204,7 +220,6 @@ def dashboard_view(request):
         context['recent_transactions'] = execute_query(query_transaksi, [email, email, email], fetch=True)
 
     elif role == 'staf':
-        # Menyesuaikan query staf dan JOIN ke maskapai untuk nama_maskapai
         query_staf = """
             SELECT p.salutation, p.first_mid_name, p.last_name,
                    p.kewarganegaraan, p.tanggal_lahir, p.country_code, p.mobile_number, p.email,
@@ -220,7 +235,6 @@ def dashboard_view(request):
             context['user'] = staf_data[0]
             context['staf'] = staf_data[0]
 
-        # Menyesuaikan nama tabel menjadi claim_missing_miles
         query_klaim = """
             SELECT 
                 COUNT(CASE WHEN status_penerimaan = 'Menunggu' THEN 1 END) as menunggu,
@@ -252,7 +266,6 @@ def tambah_mitra(request):
         tanggal = request.POST.get('tanggal')
         
         try:
-            # Asumsi: Insert ke superclass PENYEDIA dulu untuk dapat id_penyedia
             insert_query = """
                 WITH new_penyedia AS (
                     INSERT INTO PENYEDIA (nama_penyedia) VALUES (%s) RETURNING id
@@ -263,7 +276,6 @@ def tambah_mitra(request):
             execute_query(insert_query, [nama, email, nama, tanggal])
             messages.success(request, 'Mitra berhasil ditambahkan.')
         except Exception as e:
-            # Memunculkan pesan trigger dari Supabase jika ada (misal: duplikat)
             messages.error(request, f'{e}')
             
     return redirect('daftar_mitra')
@@ -378,60 +390,184 @@ def manajemen_member_view(request):
         messages.error(request, 'Akses Ditolak: Halaman ini khusus untuk Staf.')
         return redirect('dashboard')
 
+    tier_choices = execute_query(
+        "SELECT id_tier, nama FROM tier ORDER BY id_tier",
+        fetch=True
+    )
+    tier_name_to_id = {tier['nama']: tier['id_tier'] for tier in tier_choices}
+
     if request.method == 'POST':
         action = request.POST.get('action')
-        
-        if action == 'tambah':
-            messages.success(request, 'Member dummy baru berhasil ditambahkan!')
-            
-        elif action == 'edit':
-            messages.success(request, 'Data member dummy berhasil diperbarui!')
-            
-        elif action == 'hapus':
-            messages.success(request, 'Member dummy berhasil dihapus!')
-            
+
+        try:
+            if action == 'tambah':
+                email = request.POST.get('email', '').strip()
+                password = request.POST.get('password', '').strip()
+                salutation = request.POST.get('salutation', '').strip()
+                nama_depan = request.POST.get('nama_depan', '').strip()
+                nama_tengah = request.POST.get('nama_tengah', '').strip()
+                nama_belakang = request.POST.get('nama_belakang', '').strip()
+                kewarganegaraan = country_code_from_name(request.POST.get('kewarganegaraan', '').strip())
+                country_code = request.POST.get('country_code', '').strip()
+                nomor_hp = request.POST.get('nomor_hp', '').strip()
+                tanggal_lahir = request.POST.get('tanggal_lahir')
+                first_mid_name = combine_first_middle_name(nama_depan, nama_tengah)
+
+                query_tambah_member = """
+                    WITH new_user AS (
+                        INSERT INTO pengguna (
+                            email, password, salutation, first_mid_name, last_name,
+                            country_code, mobile_number, tanggal_lahir, kewarganegaraan
+                        )
+                        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
+                        RETURNING email
+                    )
+                    INSERT INTO member (email, tanggal_bergabung, id_tier, award_miles, total_miles)
+                    VALUES ((SELECT email FROM new_user), CURRENT_DATE, 'T01', 0, 0)
+                    RETURNING nomor_member
+                """
+                result = execute_query(
+                    query_tambah_member,
+                    [
+                        email, password, salutation, first_mid_name, nama_belakang,
+                        country_code, nomor_hp, tanggal_lahir, kewarganegaraan
+                    ],
+                    fetch=True
+                )
+                nomor_member = result[0]['nomor_member'] if result else '-'
+                messages.success(request, f'Member {nomor_member} berhasil ditambahkan.')
+
+            elif action == 'edit':
+                nomor_member = request.POST.get('nomor_member', '').strip()
+                salutation = request.POST.get('salutation', '').strip()
+                nama_depan = request.POST.get('nama_depan', '').strip()
+                nama_tengah = request.POST.get('nama_tengah', '').strip()
+                nama_belakang = request.POST.get('nama_belakang', '').strip()
+                kewarganegaraan = country_code_from_name(request.POST.get('kewarganegaraan', '').strip())
+                country_code = request.POST.get('country_code', '').strip()
+                nomor_hp = request.POST.get('nomor_hp', '').strip()
+                tanggal_lahir = request.POST.get('tanggal_lahir')
+                tier_name = request.POST.get('tier', '').strip()
+                id_tier = tier_name_to_id.get(tier_name)
+                first_mid_name = combine_first_middle_name(nama_depan, nama_tengah)
+
+                if not id_tier:
+                    raise ValueError('Tier yang dipilih tidak valid.')
+
+                query_edit_member = """
+                    WITH target_member AS (
+                        SELECT email
+                        FROM member
+                        WHERE nomor_member = %s
+                    ),
+                    updated_pengguna AS (
+                        UPDATE pengguna
+                        SET salutation = %s,
+                            first_mid_name = %s,
+                            last_name = %s,
+                            country_code = %s,
+                            mobile_number = %s,
+                            tanggal_lahir = %s,
+                            kewarganegaraan = %s
+                        WHERE email = (SELECT email FROM target_member)
+                        RETURNING email
+                    ),
+                    updated_member AS (
+                        UPDATE member
+                        SET id_tier = %s
+                        WHERE nomor_member = %s
+                        RETURNING nomor_member
+                    )
+                    SELECT nomor_member FROM updated_member
+                """
+                result = execute_query(
+                    query_edit_member,
+                    [
+                        nomor_member, salutation, first_mid_name, nama_belakang,
+                        country_code, nomor_hp, tanggal_lahir, kewarganegaraan,
+                        id_tier, nomor_member
+                    ],
+                    fetch=True
+                )
+
+                if not result:
+                    raise ValueError('Data member tidak ditemukan.')
+
+                messages.success(request, f'Data member {nomor_member} berhasil diperbarui.')
+
+            elif action == 'hapus':
+                nomor_member = request.POST.get('nomor_member', '').strip()
+                query_hapus_member = """
+                    WITH deleted_member AS (
+                        DELETE FROM member
+                        WHERE nomor_member = %s
+                        RETURNING email
+                    )
+                    DELETE FROM pengguna
+                    WHERE email IN (SELECT email FROM deleted_member)
+                    RETURNING email
+                """
+                result = execute_query(query_hapus_member, [nomor_member], fetch=True)
+
+                if not result:
+                    raise ValueError('Data member tidak ditemukan.')
+
+                messages.success(request, f'Member {nomor_member} berhasil dihapus.')
+
+        except Exception as error:
+            messages.error(request, format_db_error(error))
+
         return redirect('manajemen_member')
-        
-    dummy_members = [
-        {
-            'nomor_member': 'M0001', 'email': 'john@example.com', 'salutation': 'Mr.',
-            'nama_depan': 'John', 'nama_tengah': 'William', 'nama_belakang': 'Doe',
-            'kewarganegaraan': 'Indonesia', 'country_code': '+62', 'nomor_hp': '81234567890',
-            'tanggal_lahir': '1990-05-15', 'tier': 'Gold', 'total_miles': 45000, 
-            'award_miles': 32000, 'tanggal_bergabung': '2024-01-15'
-        },
-        {
-            'nomor_member': 'M0002', 'email': 'jane@example.com', 'salutation': 'Mrs.',
-            'nama_depan': 'Jane', 'nama_tengah': '', 'nama_belakang': 'Smith',
-            'kewarganegaraan': 'Indonesia', 'country_code': '+62', 'nomor_hp': '8987654321',
-            'tanggal_lahir': '1985-10-20', 'tier': 'Silver', 'total_miles': 20000, 
-            'award_miles': 15000, 'tanggal_bergabung': '2024-03-10'
-        }
-    ]
 
     search_query = request.GET.get('q', '').strip()
     filter_tier = request.GET.get('tier', '').strip()
 
-    filtered_members = dummy_members
-    if search_query:
-        search_lower = search_query.lower()
-        filtered_members = [
-            member for member in filtered_members
-            if search_lower in member['nomor_member'].lower()
-            or search_lower in member['email'].lower()
-            or search_lower in f"{member['salutation']} {member['nama_depan']} {member['nama_tengah']} {member['nama_belakang']}".lower()
-        ]
+    member_query = """
+        SELECT
+            m.nomor_member,
+            m.email,
+            p.salutation,
+            p.first_mid_name,
+            p.last_name,
+            p.kewarganegaraan,
+            p.country_code,
+            p.mobile_number,
+            p.tanggal_lahir,
+            t.nama AS tier,
+            m.total_miles,
+            m.award_miles,
+            m.tanggal_bergabung
+        FROM member m
+        JOIN pengguna p ON p.email = m.email
+        JOIN tier t ON t.id_tier = m.id_tier
+        WHERE (%s = '' OR
+            m.nomor_member ILIKE %s OR
+            m.email ILIKE %s OR
+            CONCAT_WS(' ', p.salutation, p.first_mid_name, p.last_name) ILIKE %s
+        )
+        AND (%s = '' OR t.nama = %s)
+        ORDER BY m.nomor_member ASC
+    """
+    like_search = f"%{search_query}%"
+    filtered_members = execute_query(
+        member_query,
+        [search_query, like_search, like_search, like_search, filter_tier, filter_tier],
+        fetch=True
+    )
 
-    if filter_tier:
-        filtered_members = [
-            member for member in filtered_members
-            if member['tier'].lower() == filter_tier.lower()
-        ]
+    for member in filtered_members:
+        nama_depan, nama_tengah = split_first_middle_name(member.get('first_mid_name'))
+        member['nama_depan'] = nama_depan
+        member['nama_tengah'] = nama_tengah
+        member['nama_belakang'] = member.get('last_name', '')
+        member['nomor_hp'] = member.get('mobile_number', '')
+        member['kewarganegaraan'] = country_name_from_code(member.get('kewarganegaraan'))
 
     context = {
         'role': role,
         'name': name,
         'member_list': filtered_members,
+        'tier_choices': tier_choices,
         'search_query': search_query,
         'filter_tier': filter_tier,
     }
@@ -441,6 +577,7 @@ def manajemen_member_view(request):
 def manajemen_identitas_view(request):
     role = request.session.get('role')
     name = request.session.get('name')
+    email = request.session.get('email')
     
     if role != 'member':
         messages.error(request, 'Akses Ditolak: Halaman ini khusus untuk Member.')
@@ -448,47 +585,99 @@ def manajemen_identitas_view(request):
 
     if request.method == 'POST':
         action = request.POST.get('action')
-        
-        if action == 'tambah':
-            messages.success(request, 'Identitas baru berhasil ditambahkan!')
-        elif action == 'edit':
-            messages.success(request, 'Data identitas berhasil diperbarui!')
-        elif action == 'hapus':
-            messages.success(request, 'Identitas berhasil dihapus!')
-            
+
+        try:
+            if action == 'tambah':
+                no_dokumen = request.POST.get('no_dokumen', '').strip()
+                jenis = request.POST.get('jenis', '').strip()
+                negara = country_code_from_name(request.POST.get('negara', '').strip())
+                terbit = request.POST.get('terbit')
+                habis = request.POST.get('habis')
+
+                execute_query(
+                    """
+                    INSERT INTO identitas (nomor, email_member, tanggal_habis, tanggal_terbit, negara_penerbit, jenis)
+                    VALUES (%s, %s, %s, %s, %s, %s)
+                    """,
+                    [no_dokumen, email, habis, terbit, negara, jenis]
+                )
+                messages.success(request, 'Identitas baru berhasil ditambahkan.')
+
+            elif action == 'edit':
+                no_dokumen = request.POST.get('old_no_dokumen', '').strip()
+                jenis = request.POST.get('jenis', '').strip()
+                negara = country_code_from_name(request.POST.get('negara', '').strip())
+                terbit = request.POST.get('terbit')
+                habis = request.POST.get('habis')
+
+                result = execute_query(
+                    """
+                    UPDATE identitas
+                    SET jenis = %s,
+                        negara_penerbit = %s,
+                        tanggal_terbit = %s,
+                        tanggal_habis = %s
+                    WHERE nomor = %s AND email_member = %s
+                    RETURNING nomor
+                    """,
+                    [jenis, negara, terbit, habis, no_dokumen, email],
+                    fetch=True
+                )
+
+                if not result:
+                    raise ValueError('Data identitas tidak ditemukan.')
+
+                messages.success(request, 'Data identitas berhasil diperbarui.')
+
+            elif action == 'hapus':
+                no_dokumen = request.POST.get('no_dokumen', '').strip()
+                result = execute_query(
+                    """
+                    DELETE FROM identitas
+                    WHERE nomor = %s AND email_member = %s
+                    RETURNING nomor
+                    """,
+                    [no_dokumen, email],
+                    fetch=True
+                )
+
+                if not result:
+                    raise ValueError('Data identitas tidak ditemukan.')
+
+                messages.success(request, 'Identitas berhasil dihapus.')
+
+        except Exception as error:
+            messages.error(request, format_db_error(error))
+
         return redirect('manajemen_identitas')
-        
-    dummy_identitas = [
-        {
-            'no_dokumen': 'A12345678', 'jenis': 'Paspor', 'negara': 'Indonesia',
-            'terbit': '2020-01-15', 'habis': '2030-01-15', 'status': 'Aktif'
-        },
-        {
-            'no_dokumen': '3275012345678901', 'jenis': 'KTP', 'negara': 'Indonesia',
-            'terbit': '2019-06-01', 'habis': '2024-06-01', 'status': 'Kedaluwarsa'
-        }
-    ]
+
+    identitas_query = """
+        SELECT
+            nomor AS no_dokumen,
+            jenis,
+            negara_penerbit,
+            tanggal_terbit AS terbit,
+            tanggal_habis AS habis,
+            CASE
+                WHEN tanggal_habis >= CURRENT_DATE THEN 'Aktif'
+                ELSE 'Kedaluwarsa'
+            END AS status
+        FROM identitas
+        WHERE email_member = %s
+        ORDER BY tanggal_habis DESC, nomor ASC
+    """
+    identitas_list = execute_query(identitas_query, [email], fetch=True)
+
+    for identitas in identitas_list:
+        identitas['negara'] = country_name_from_code(identitas.get('negara_penerbit'))
 
     context = {
         'role': role,
         'name': name,
-        'identitas_list': dummy_identitas
+        'identitas_list': identitas_list
     }
     return render(request, 'manajemen_identitas.html', context)
 
-
-def form_identitas_view(request):
-    if request.method == 'POST':
-        messages.success(request, 'Data identitas berhasil disimpan!')
-        return redirect('manajemen_identitas')
-    return render(request, 'form_identitas.html')
-
-
-def form_member_view(request):
-    if request.method == 'POST':
-        messages.success(request, 'Data member berhasil diperbarui!')
-        return redirect('manajemen_member')
-    return render(request, 'form_member.html')
 
 def pengaturan_profil_view(request):
     role = request.session.get('role')
