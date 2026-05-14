@@ -40,7 +40,17 @@
             </div>
             <div class="bg-white/5 border border-white/10 p-4 rounded-xl shadow-lg col-span-2 md:col-span-1">
                 <p class="text-xs text-slate-500 uppercase tracking-widest">Tier</p>
-                <span class="inline-block mt-1 px-2 py-1 bg-amber-900/30 text-amber-400 border border-amber-500/30 rounded text-xs font-bold">{{ member.nama_tier|default:"-" }}</span>
+                {% if member.nama_tier == 'Blue' %}
+                    <span class="inline-block mt-1 px-2 py-1 bg-blue-900/30 text-blue-400 border border-blue-500/30 rounded text-xs font-bold">{{ member.nama_tier }}</span>
+                {% elif member.nama_tier == 'Silver' %}
+                    <span class="inline-block mt-1 px-2 py-1 bg-slate-800/50 text-slate-300 border border-slate-500/30 rounded text-xs font-bold">{{ member.nama_tier }}</span>
+                {% elif member.nama_tier == 'Gold' %}
+                    <span class="inline-block mt-1 px-2 py-1 bg-amber-900/30 text-amber-400 border border-amber-500/30 rounded text-xs font-bold">{{ member.nama_tier }}</span>
+                {% elif member.nama_tier == 'Platinum' %}
+                    <span class="inline-block mt-1 px-2 py-1 bg-purple-900/30 text-purple-400 border border-purple-500/30 rounded text-xs font-bold">{{ member.nama_tier }}</span>
+                {% else %}
+                    <span class="inline-block mt-1 px-2 py-1 bg-white/10 text-white border border-white/20 rounded text-xs font-bold">{{ member.nama_tier|default:"-" }}</span>
+                {% endif %}
             </div>
             <div class="bg-white/5 border border-white/10 p-4 rounded-xl shadow-lg col-span-2 md:col-span-1">
                 <p class="text-xs text-slate-500 uppercase tracking-widest">Total Miles</p>
