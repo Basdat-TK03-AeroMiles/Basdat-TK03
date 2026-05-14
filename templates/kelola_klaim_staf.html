@@ -17,9 +17,9 @@
         
         <select id="filterMaskapai" onchange="filterTable()" class="bg-slate-800 border border-white/10 rounded-lg px-4 py-2 text-sm text-white outline-none focus:border-electric">
             <option value="">Semua Maskapai</option>
-            <option value="Garuda Indonesia|GA">Garuda Indonesia</option>
-            <option value="Singapore Airlines|SQ">Singapore Airlines</option>
-            <option value="Malaysia Airlines|MH">Malaysia Airlines</option>
+            {% for maskapai in maskapai_choices %}
+            <option value="{{ maskapai.nama_maskapai }}|{{ maskapai.kode_maskapai }}">{{ maskapai.nama_maskapai }}</option>
+            {% endfor %}
         </select>
 
         <input type="date" id="filterTanggal" onchange="filterTable()" class="bg-slate-800 border border-white/10 rounded-lg px-4 py-2 text-sm text-white outline-none focus:border-electric">
