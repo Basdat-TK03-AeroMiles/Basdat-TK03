@@ -1094,42 +1094,7 @@ def proses_transfer(request):
             
     return redirect('transfer_miles')
 
-DUMMY_HADIAH_KATALOG = [
-    {'kode_hadiah': 'RWD-001', 'nama': 'Tiket Domestik PP', 'nama_penyedia': 'Garuda Indonesia', 'miles': 15000, 'deskripsi': 'Tiket pulang-pergi rute domestik.', 'valid_start_date': datetime.date(2024, 1, 1), 'program_end': datetime.date(2027, 12, 31), 'id_penyedia': 1},
-    {'kode_hadiah': 'RWD-002', 'nama': 'Lounge Access', 'nama_penyedia': 'Plaza Premium', 'miles': 3000, 'deskripsi': 'Akses lounge bandara internasional.', 'valid_start_date': datetime.date(2024, 3, 1), 'program_end': datetime.date(2027, 6, 30), 'id_penyedia': 2},
-    {'kode_hadiah': 'RWD-003', 'nama': 'Voucher Hotel', 'nama_penyedia': 'Traveloka Partner', 'miles': 5000, 'deskripsi': 'Voucher menginap hotel bintang 4.', 'valid_start_date': datetime.date(2024, 6, 1), 'program_end': datetime.date(2027, 6, 30), 'id_penyedia': 3},
-    {'kode_hadiah': 'RWD-004', 'nama': 'Upgrade Kelas', 'nama_penyedia': 'Garuda Indonesia', 'miles': 20000, 'deskripsi': 'Upgrade dari ekonomi ke bisnis.', 'valid_start_date': datetime.date(2024, 1, 1), 'program_end': datetime.date(2027, 12, 31), 'id_penyedia': 1},
-]
-
-DUMMY_REDEEM_HISTORY = [
-    {'timestamp': datetime.datetime(2026, 4, 20, 16, 0), 'kode_hadiah': 'RWD-002', 'nama_hadiah': 'Lounge Access', 'miles': 3000},
-    {'timestamp': datetime.datetime(2026, 4, 28, 9, 45), 'kode_hadiah': 'RWD-003', 'nama_hadiah': 'Voucher Hotel', 'miles': 5000},
-]
-
-DUMMY_PAKET = [
-    {'id': 'AMP-001', 'jumlah_award_miles': 1000, 'harga_paket': 150000},
-    {'id': 'AMP-002', 'jumlah_award_miles': 2500, 'harga_paket': 350000},
-    {'id': 'AMP-003', 'jumlah_award_miles': 5000, 'harga_paket': 650000},
-    {'id': 'AMP-004', 'jumlah_award_miles': 10000, 'harga_paket': 1200000},
-    {'id': 'AMP-005', 'jumlah_award_miles': 25000, 'harga_paket': 2750000},
-    {'id': 'AMP-006', 'jumlah_award_miles': 50000, 'harga_paket': 5000000},
-]
-
-DUMMY_TIERS = [
-    {'id_tier': 'T001', 'nama': 'Blue', 'minimal_frekuensi_terbang': 0, 'minimal_tier_miles': 0},
-    {'id_tier': 'T002', 'nama': 'Silver', 'minimal_frekuensi_terbang': 5, 'minimal_tier_miles': 10000},
-    {'id_tier': 'T003', 'nama': 'Gold', 'minimal_frekuensi_terbang': 15, 'minimal_tier_miles': 30000},
-    {'id_tier': 'T004', 'nama': 'Platinum', 'minimal_frekuensi_terbang': 30, 'minimal_tier_miles': 75000},
-]
-
-DUMMY_TRANSAKSI = [
-    {'jenis': 'redeem', 'email_member': 'member@aeromiles.com', 'jumlah_miles': 3000, 'timestamp': datetime.datetime(2026, 4, 20, 16, 0), 'id1': 'member@aeromiles.com', 'id2': 'RWD-002', 'id3': '2026-04-20 16:00:00', 'deskripsi': 'Redeem: Lounge Access'},
-    {'jenis': 'package', 'email_member': 'member@aeromiles.com', 'jumlah_miles': 10000, 'timestamp': datetime.datetime(2026, 4, 25, 8, 0), 'id1': 'AMP-004', 'id2': 'member@aeromiles.com', 'id3': '2026-04-25 08:00:00', 'deskripsi': 'Beli Paket: AMP-004 (10000 miles)'},
-    {'jenis': 'transfer', 'email_member': 'member@aeromiles.com', 'jumlah_miles': 5000, 'timestamp': datetime.datetime(2026, 4, 15, 10, 30), 'id1': 'member@aeromiles.com', 'id2': 'other@aeromiles.com', 'id3': '2026-04-15 10:30:00', 'deskripsi': 'Transfer 5000 miles ke other@aeromiles.com'},
-    {'jenis': 'klaim', 'email_member': 'member@aeromiles.com', 'jumlah_miles': 0, 'timestamp': datetime.datetime(2026, 4, 10, 12, 0), 'id1': '1', 'id2': 'member@aeromiles.com', 'id3': '2026-04-10 12:00:00', 'deskripsi': 'Klaim Disetujui: GA-123 (CGK → DPS)'},
-]
-
-AWARD_MILES = 32000
+AWARD_MILES = 0
 
 
 def redeem_hadiah_view(request):
@@ -1137,21 +1102,60 @@ def redeem_hadiah_view(request):
         messages.error(request, 'Akses Ditolak: Halaman ini khusus untuk Member.')
         return redirect('dashboard')
 
+    email_member = request.session.get('email')
+
     if request.method == 'POST':
         kode_hadiah = request.POST.get('kode_hadiah')
-        hadiah = next((h for h in DUMMY_HADIAH_KATALOG if h['kode_hadiah'] == kode_hadiah), None)
+        hadiah_query = "SELECT miles, valid_start_date, program_end, nama FROM hadiah WHERE kode_hadiah = %s"
+        hadiah = execute_query(hadiah_query, [kode_hadiah], fetch=True)
+        
         if not hadiah:
             messages.error(request, 'Hadiah tidak ditemukan.')
-        elif AWARD_MILES < hadiah['miles']:
-            messages.error(request, 'Award Miles Anda tidak cukup untuk menukarkan hadiah ini.')
         else:
-            messages.success(request, f'Berhasil menukarkan hadiah! {hadiah["miles"]} Miles telah dipotong.')
+            hadiah = hadiah[0]
+            today = datetime.date.today()
+            if today < hadiah['valid_start_date'] or today > hadiah['program_end']:
+                messages.error(request, f'ERROR: Hadiah "{hadiah["nama"]}" tidak tersedia pada periode ini.')
+            else:
+                member_res = execute_query("SELECT award_miles FROM member WHERE email = %s", [email_member], fetch=True)
+                award_miles = member_res[0]['award_miles'] if member_res else 0
+                
+                if award_miles < hadiah['miles']:
+                    messages.error(request, f'ERROR: Saldo award miles tidak mencukupi. Dibutuhkan {hadiah["miles"]} miles, saldo Anda: {award_miles}.')
+                else:
+                    try:
+                        execute_query("UPDATE member SET award_miles = award_miles - %s WHERE email = %s", [hadiah['miles'], email_member])
+                        execute_query("INSERT INTO redeem (email_member, kode_hadiah, timestamp) VALUES (%s, %s, NOW())", [email_member, kode_hadiah])
+                        messages.success(request, f'SUKSES: Redeem hadiah "{hadiah["nama"]}" berhasil. Award miles Anda berkurang {hadiah["miles"]} miles.')
+                    except Exception as e:
+                        messages.error(request, format_db_error(e))
         return redirect('redeem_hadiah')
 
+    katalog_query = """
+        SELECT h.kode_hadiah, h.nama, h.miles, h.deskripsi, h.valid_start_date, h.program_end, p.nama_penyedia
+        FROM hadiah h
+        JOIN penyedia p ON h.id_penyedia = p.id
+        WHERE h.program_end >= CURRENT_DATE
+        ORDER BY h.valid_start_date DESC
+    """
+    hadiah_list = execute_query(katalog_query, fetch=True)
+
+    member_res = execute_query("SELECT award_miles FROM member WHERE email = %s", [email_member], fetch=True)
+    award_miles = member_res[0]['award_miles'] if member_res else 0
+
+    riwayat_query = """
+        SELECT r.timestamp, h.nama as nama_hadiah, h.miles, h.kode_hadiah
+        FROM redeem r
+        JOIN hadiah h ON r.kode_hadiah = h.kode_hadiah
+        WHERE r.email_member = %s
+        ORDER BY r.timestamp DESC
+    """
+    riwayat_redeem = execute_query(riwayat_query, [email_member], fetch=True)
+
     return render(request, 'redeem_hadiah.html', {
-        'hadiah_list': [h for h in DUMMY_HADIAH_KATALOG if h['program_end'] >= datetime.date.today()],
-        'award_miles': AWARD_MILES,
-        'riwayat_redeem': DUMMY_REDEEM_HISTORY,
+        'hadiah_list': hadiah_list,
+        'award_miles': award_miles,
+        'riwayat_redeem': riwayat_redeem,
     })
 
 
@@ -1160,18 +1164,30 @@ def beli_paket_view(request):
         messages.error(request, 'Akses Ditolak: Halaman ini khusus untuk Member.')
         return redirect('dashboard')
 
+    email_member = request.session.get('email')
+
     if request.method == 'POST':
         id_paket = request.POST.get('id_paket')
-        paket = next((p for p in DUMMY_PAKET if p['id'] == id_paket), None)
-        if not paket:
+        paket_res = execute_query("SELECT jumlah_award_miles FROM award_miles_package WHERE id = %s", [id_paket], fetch=True)
+        if not paket_res:
             messages.error(request, 'Paket tidak ditemukan.')
         else:
-            messages.success(request, f'Berhasil membeli paket! {paket["jumlah_award_miles"]} Miles telah ditambahkan ke akun Anda.')
+            paket = paket_res[0]
+            try:
+                execute_query("UPDATE member SET award_miles = award_miles + %s, total_miles = total_miles + %s WHERE email = %s", [paket['jumlah_award_miles'], paket['jumlah_award_miles'], email_member])
+                execute_query("INSERT INTO member_award_miles_package (email_member, id_award_miles_package, timestamp) VALUES (%s, %s, NOW())", [email_member, id_paket])
+                messages.success(request, f'SUKSES: Pembelian package berhasil. Award miles dan total miles Anda bertambah {paket["jumlah_award_miles"]} miles.')
+            except Exception as e:
+                messages.error(request, format_db_error(e))
         return redirect('beli_paket')
 
+    paket_list = execute_query("SELECT id, jumlah_award_miles, harga_paket FROM award_miles_package ORDER BY harga_paket ASC", fetch=True)
+    member_res = execute_query("SELECT award_miles FROM member WHERE email = %s", [email_member], fetch=True)
+    award_miles = member_res[0]['award_miles'] if member_res else 0
+
     return render(request, 'beli_paket.html', {
-        'paket_list': DUMMY_PAKET,
-        'award_miles': AWARD_MILES,
+        'paket_list': paket_list,
+        'award_miles': award_miles,
     })
 
 
@@ -1180,13 +1196,30 @@ def info_tier_view(request):
         messages.error(request, 'Akses Ditolak: Halaman ini khusus untuk Member.')
         return redirect('dashboard')
 
-    current_tier_id = 'T003'
-    total_miles = 45000
-    nama_tier = 'Gold'
+    email_member = request.session.get('email')
+
+    tier_list = execute_query("SELECT id_tier, nama, minimal_frekuensi_terbang, minimal_tier_miles FROM tier ORDER BY minimal_tier_miles ASC", fetch=True)
+    
+    query_member = """
+        SELECT m.id_tier, t.nama as nama_tier, m.total_miles 
+        FROM member m
+        JOIN tier t ON m.id_tier = t.id_tier
+        WHERE m.email = %s
+    """
+    member_data = execute_query(query_member, [email_member], fetch=True)
+    
+    if member_data:
+        current_tier_id = member_data[0]['id_tier']
+        nama_tier = member_data[0]['nama_tier']
+        total_miles = member_data[0]['total_miles']
+    else:
+        current_tier_id = None
+        nama_tier = '-'
+        total_miles = 0
 
     next_tier = None
     found = False
-    for t in DUMMY_TIERS:
+    for t in tier_list:
         if found:
             next_tier = t
             break
@@ -1196,7 +1229,7 @@ def info_tier_view(request):
     miles_to_next = next_tier['minimal_tier_miles'] - total_miles if next_tier else None
 
     return render(request, 'info_tier.html', {
-        'tier_list': DUMMY_TIERS,
+        'tier_list': tier_list,
         'current_tier_id': current_tier_id,
         'nama_tier': nama_tier,
         'total_miles': total_miles,
@@ -1215,40 +1248,80 @@ def laporan_transaksi_view(request):
     filter_dari = request.GET.get('dari', '')
     filter_sampai = request.GET.get('sampai', '')
 
-    filtered = DUMMY_TRANSAKSI[:]
+    base_query = """
+        SELECT 'redeem' AS jenis, r.email_member, h.miles AS jumlah_miles, r.timestamp,
+               r.email_member AS id1, r.kode_hadiah AS id2, r.timestamp::text AS id3,
+               CONCAT('Redeem: ', h.nama) AS deskripsi
+        FROM redeem r
+        JOIN hadiah h ON r.kode_hadiah = h.kode_hadiah
+        UNION ALL
+        SELECT 'package' AS jenis, mp.email_member, amp.jumlah_award_miles AS jumlah_miles, mp.timestamp,
+               mp.id_award_miles_package AS id1, mp.email_member AS id2, mp.timestamp::text AS id3,
+               CONCAT('Beli Paket: ', mp.id_award_miles_package, ' (', amp.jumlah_award_miles, ' miles)') AS deskripsi
+        FROM member_award_miles_package mp
+        JOIN award_miles_package amp ON mp.id_award_miles_package = amp.id
+        UNION ALL
+        SELECT 'transfer' AS jenis, t.email_member_1 AS email_member, t.jumlah AS jumlah_miles, t.timestamp,
+               t.email_member_1 AS id1, t.email_member_2 AS id2, t.timestamp::text AS id3,
+               CONCAT('Transfer ', t.jumlah, ' miles dari ', t.email_member_1, ' ke ', t.email_member_2) AS deskripsi
+        FROM transfer t
+        UNION ALL
+        SELECT 'klaim' AS jenis, c.email_member, 0 AS jumlah_miles, c.timestamp,
+               c.id::text AS id1, c.email_member AS id2, c.timestamp::text AS id3,
+               CONCAT('Klaim Disetujui: ', c.flight_number, ' (', c.bandara_asal, ' → ', c.bandara_tujuan, ')') AS deskripsi
+        FROM claim_missing_miles c
+        WHERE c.status_penerimaan = 'Disetujui'
+    """
+    
+    query = f"SELECT * FROM ({base_query}) AS all_tx WHERE 1=1"
+    params = []
+
     if filter_jenis:
-        filtered = [t for t in filtered if t['jenis'] == filter_jenis]
+        query += " AND jenis = %s"
+        params.append(filter_jenis)
     if filter_email:
-        filtered = [t for t in filtered if filter_email.lower() in t['email_member'].lower()]
+        query += " AND email_member ILIKE %s"
+        params.append(f"%{filter_email}%")
     if filter_dari:
-        try:
-            tanggal_dari = datetime.date.fromisoformat(filter_dari)
-            filtered = [t for t in filtered if t['timestamp'].date() >= tanggal_dari]
-        except ValueError:
-            pass
+        query += " AND timestamp >= %s"
+        params.append(filter_dari)
     if filter_sampai:
-        try:
-            tanggal_sampai = datetime.date.fromisoformat(filter_sampai)
-            filtered = [t for t in filtered if t['timestamp'].date() <= tanggal_sampai]
-        except ValueError:
-            pass
+        query += " AND timestamp <= %s"
+        params.append(filter_sampai + ' 23:59:59')
+
+    query += " ORDER BY timestamp DESC"
+    transaksi_list = execute_query(query, params, fetch=True)
+
+    stats = {
+        'total_miles_beredar': (execute_query("SELECT COALESCE(SUM(total_miles), 0) AS v FROM member", fetch=True)[0]['v']),
+        'redeem_bulan_ini': (execute_query("SELECT COUNT(*) AS v FROM redeem WHERE DATE_TRUNC('month', timestamp) = DATE_TRUNC('month', CURRENT_DATE)", fetch=True)[0]['v']),
+        'klaim_disetujui': (execute_query("SELECT COUNT(*) AS v FROM claim_missing_miles WHERE status_penerimaan = 'Disetujui'", fetch=True)[0]['v']),
+    }
+
+    top_miles = execute_query("""
+        SELECT CONCAT(p.first_mid_name, ' ', p.last_name) AS nama, m.email, m.total_miles
+        FROM member m JOIN pengguna p ON m.email = p.email
+        ORDER BY m.total_miles DESC LIMIT 5
+    """, fetch=True)
+
+    top_redeem = execute_query("""
+        SELECT CONCAT(p.first_mid_name, ' ', p.last_name) AS nama, r.email_member AS email, COUNT(*) AS jumlah
+        FROM redeem r JOIN pengguna p ON r.email_member = p.email
+        GROUP BY p.first_mid_name, p.last_name, r.email_member ORDER BY jumlah DESC LIMIT 5
+    """, fetch=True)
+
+    top_transfer = execute_query("""
+        SELECT CONCAT(p.first_mid_name, ' ', p.last_name) AS nama, t.email_member_1 AS email, COUNT(*) AS jumlah
+        FROM transfer t JOIN pengguna p ON t.email_member_1 = p.email
+        GROUP BY p.first_mid_name, p.last_name, t.email_member_1 ORDER BY jumlah DESC LIMIT 5
+    """, fetch=True)
 
     return render(request, 'laporan_transaksi.html', {
-        'transaksi_list': filtered,
-        'stats': {'total_miles_beredar': 125000, 'redeem_bulan_ini': 8, 'klaim_disetujui': 5},
-        'top_miles': [
-            {'nama': 'Jonathan Emanuelle', 'email': 'member@aeromiles.com', 'total_miles': 45000},
-            {'nama': 'Budi Santoso', 'email': 'budi@mail.com', 'total_miles': 38000},
-            {'nama': 'Dewi Lestari', 'email': 'dewi@mail.com', 'total_miles': 22000},
-        ],
-        'top_redeem': [
-            {'nama': 'Jonathan Emanuelle', 'email': 'member@aeromiles.com', 'jumlah': 4},
-            {'nama': 'Dewi Lestari', 'email': 'dewi@mail.com', 'jumlah': 2},
-        ],
-        'top_transfer': [
-            {'nama': 'Jonathan Emanuelle', 'email': 'member@aeromiles.com', 'jumlah': 3},
-            {'nama': 'Budi Santoso', 'email': 'budi@mail.com', 'jumlah': 1},
-        ],
+        'transaksi_list': transaksi_list,
+        'stats': stats,
+        'top_miles': top_miles,
+        'top_redeem': top_redeem,
+        'top_transfer': top_transfer,
         'filter_jenis': filter_jenis,
         'filter_email': filter_email,
         'filter_dari': filter_dari,
@@ -1262,6 +1335,23 @@ def hapus_transaksi_view(request, jenis, id1, id2, id3):
 
     if jenis == 'klaim':
         messages.error(request, 'Riwayat Klaim Missing Miles yang sudah Disetujui tidak dapat dihapus.')
-    else:
+        return redirect('laporan_transaksi')
+
+    delete_queries = {
+        'redeem': "DELETE FROM redeem WHERE email_member = %s AND kode_hadiah = %s AND timestamp = %s",
+        'package': "DELETE FROM member_award_miles_package WHERE id_award_miles_package = %s AND email_member = %s AND timestamp = %s",
+        'transfer': "DELETE FROM transfer WHERE email_member_1 = %s AND email_member_2 = %s AND timestamp = %s",
+    }
+    
+    delete_sql = delete_queries.get(jenis)
+    if not delete_sql:
+        messages.error(request, 'Jenis transaksi tidak valid.')
+        return redirect('laporan_transaksi')
+
+    try:
+        execute_query(delete_sql, [id1, id2, id3])
         messages.success(request, 'Transaksi berhasil dihapus. Penghapusan ini bersifat permanen.')
+    except Exception as e:
+        messages.error(request, f'Gagal menghapus transaksi: {e}')
+
     return redirect('laporan_transaksi')
