@@ -48,7 +48,8 @@
                 </div>
                 <div>
                     <label class="block text-xs font-bold text-slate-300 uppercase tracking-widest mb-2">Kode Maskapai</label>
-                    <input type="text" name="maskapai" value="{{ profile.maskapai }}" class="w-full px-4 py-3 border border-white/10 rounded-xl focus:ring-1 focus:ring-electric focus:border-electric outline-none transition-all bg-white/5 text-sm text-white">
+                    <input type="text" name="maskapai" value="{{ profile.maskapai }}" required class="w-full px-4 py-3 border border-white/10 rounded-xl focus:ring-1 focus:ring-electric focus:border-electric outline-none transition-all bg-white/5 text-sm text-white">
+                    <p class="text-[10px] text-slate-500 mt-2">{{ profile.nama_maskapai }}</p>
                 </div>
                 {% endif %}
 
@@ -58,7 +59,7 @@
 
                 <div>
                     <label class="block text-xs font-bold text-slate-300 uppercase tracking-widest mb-2">Salutation</label>
-                    <select name="salutation" class="w-full px-4 py-3 border border-white/10 rounded-xl focus:ring-1 focus:ring-electric focus:border-electric outline-none transition-all bg-white/5 text-sm text-white appearance-none">
+                    <select name="salutation" required class="w-full px-4 py-3 border border-white/10 rounded-xl focus:ring-1 focus:ring-electric focus:border-electric outline-none transition-all bg-white/5 text-sm text-white appearance-none">
                         <option value="Mr." {% if profile.salutation == 'Mr.' %}selected{% endif %}>Mr.</option>
                         <option value="Mrs." {% if profile.salutation == 'Mrs.' %}selected{% endif %}>Mrs.</option>
                         <option value="Ms." {% if profile.salutation == 'Ms.' %}selected{% endif %}>Ms.</option>
@@ -67,30 +68,30 @@
 
                 <div>
                     <label class="block text-xs font-bold text-slate-300 uppercase tracking-widest mb-2">Nama Depan & Tengah</label>
-                    <input type="text" name="first_name" value="{{ profile.first_name }}" class="w-full px-4 py-3 border border-white/10 rounded-xl focus:ring-1 focus:ring-electric focus:border-electric outline-none transition-all bg-white/5 text-sm text-white">
+                    <input type="text" name="first_name" value="{{ profile.first_name }}" required class="w-full px-4 py-3 border border-white/10 rounded-xl focus:ring-1 focus:ring-electric focus:border-electric outline-none transition-all bg-white/5 text-sm text-white">
                 </div>
 
                 <div>
                     <label class="block text-xs font-bold text-slate-300 uppercase tracking-widest mb-2">Nama Belakang</label>
-                    <input type="text" name="last_name" value="{{ profile.last_name }}" class="w-full px-4 py-3 border border-white/10 rounded-xl focus:ring-1 focus:ring-electric focus:border-electric outline-none transition-all bg-white/5 text-sm text-white">
+                    <input type="text" name="last_name" value="{{ profile.last_name }}" required class="w-full px-4 py-3 border border-white/10 rounded-xl focus:ring-1 focus:ring-electric focus:border-electric outline-none transition-all bg-white/5 text-sm text-white">
                 </div>
 
                 <div>
                     <label class="block text-xs font-bold text-slate-300 uppercase tracking-widest mb-2">Kewarganegaraan</label>
-                    <input type="text" name="nationality" value="{{ profile.nationality }}" class="w-full px-4 py-3 border border-white/10 rounded-xl focus:ring-1 focus:ring-electric focus:border-electric outline-none transition-all bg-white/5 text-sm text-white">
+                    <input type="text" name="nationality" value="{{ profile.nationality }}" required class="w-full px-4 py-3 border border-white/10 rounded-xl focus:ring-1 focus:ring-electric focus:border-electric outline-none transition-all bg-white/5 text-sm text-white">
                 </div>
 
                 <div>
                     <label class="block text-xs font-bold text-slate-300 uppercase tracking-widest mb-2">Nomor HP</label>
                     <div class="flex gap-2">
-                        <input type="text" name="country_code" value="{{ profile.country_code }}" class="w-20 px-3 py-3 border border-white/10 rounded-xl focus:ring-1 focus:ring-electric focus:border-electric outline-none transition-all bg-white/5 text-sm text-white text-center">
-                        <input type="text" name="phone" value="{{ profile.phone }}" class="flex-1 px-4 py-3 border border-white/10 rounded-xl focus:ring-1 focus:ring-electric focus:border-electric outline-none transition-all bg-white/5 text-sm text-white">
+                        <input type="text" name="country_code" value="{{ profile.country_code }}" required class="w-20 px-3 py-3 border border-white/10 rounded-xl focus:ring-1 focus:ring-electric focus:border-electric outline-none transition-all bg-white/5 text-sm text-white text-center">
+                        <input type="text" name="phone" value="{{ profile.phone }}" required class="flex-1 px-4 py-3 border border-white/10 rounded-xl focus:ring-1 focus:ring-electric focus:border-electric outline-none transition-all bg-white/5 text-sm text-white">
                     </div>
                 </div>
 
                 <div>
                     <label class="block text-xs font-bold text-slate-300 uppercase tracking-widest mb-2">Tanggal Lahir</label>
-                    <input type="date" name="birth_date" value="{{ profile.birth_date }}" class="w-full px-4 py-3 border border-white/10 rounded-xl focus:ring-1 focus:ring-electric focus:border-electric outline-none transition-all bg-white/5 text-sm text-slate-300" style="color-scheme: dark;">
+                    <input type="date" name="birth_date" value="{{ profile.birth_date }}" required class="w-full px-4 py-3 border border-white/10 rounded-xl focus:ring-1 focus:ring-electric focus:border-electric outline-none transition-all bg-white/5 text-sm text-slate-300" style="color-scheme: dark;">
                 </div>
 
                 <div class="border-t border-white/5 md:col-span-2 mt-4 pt-6">

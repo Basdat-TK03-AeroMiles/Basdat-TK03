@@ -19,66 +19,71 @@
         <button onclick="filterTable('Ditolak', this)" class="filter-btn px-4 py-1.5 rounded-full bg-white/5 text-slate-400 hover:bg-white/10 text-sm font-medium transition-all">Ditolak</button>
     </div>
 
-    <div class="bg-slate-900/50 border border-white/10 rounded-xl overflow-hidden">
-        <table class="w-full text-left border-collapse" id="klaim-table">
+    <div class="bg-white/5 border border-white/10 rounded-xl overflow-hidden">
+        <table class="w-full text-left border-collapse" id="table-klaim">
             <thead>
-                <tr class="border-b border-white/10 bg-white/5">
-                    <th class="p-4 text-xs font-semibold text-slate-400 uppercase">No. Klaim</th>
-                    <th class="p-4 text-xs font-semibold text-slate-400 uppercase">Maskapai</th>
-                    <th class="p-4 text-xs font-semibold text-slate-400 uppercase">Rute</th>
-                    <th class="p-4 text-xs font-semibold text-slate-400 uppercase">Tanggal</th>
-                    <th class="p-4 text-xs font-semibold text-slate-400 uppercase">Flight</th>
-                    <th class="p-4 text-xs font-semibold text-slate-400 uppercase">Kelas</th>
-                    <th class="p-4 text-xs font-semibold text-slate-400 uppercase">Status</th>
-                    <th class="p-4 text-xs font-semibold text-slate-400 uppercase text-center">Aksi</th>
+                <tr class="text-xs font-bold text-slate-500 uppercase tracking-wider border-b border-white/10 bg-white/5">
+                    <th class="px-6 py-4">No. Klaim</th>
+                    <th class="px-6 py-4">Maskapai</th>
+                    <th class="px-6 py-4">Rute</th>
+                    <th class="px-6 py-4">Tanggal</th>
+                    <th class="px-6 py-4">Flight</th>
+                    <th class="px-6 py-4">Kelas</th>
+                    <th class="px-6 py-4">Status</th>
+                    <th class="px-6 py-4">Tanggal Pengajuan</th>
+                    <th class="px-6 py-4 text-right">Aksi</th>
                 </tr>
             </thead>
-            <tbody class="text-slate-300 divide-y divide-white/5">
-                {% for k in klaim_list %}
-                <tr class="klaim-row hover:bg-white/[0.02] transition-colors" data-status="{{ k.status_penerimaan }}">
-                    <td class="p-4 font-mono text-sm">CLM-00{{ k.id }}</td>
-                    <td class="p-4 text-sm">{{ k.maskapai }}</td>
-                    <td class="p-4 text-sm">{{ k.bandara_asal }} → {{ k.bandara_tujuan }}</td>
-                    <td class="p-4 text-sm">{{ k.tanggal_penerbangan }}</td>
-                    <td class="p-4 text-sm">{{ k.flight_number }}</td>
-                    <td class="p-4 text-sm">{{ k.kelas_kabin }}</td>
-                    <td class="p-4">
-                        {% if k.status_penerimaan == 'Disetujui' %}
-                        <span class="px-2 py-1 rounded-md bg-emerald-500/10 text-emerald-500 text-xs font-bold uppercase tracking-wider border border-emerald-500/20">Disetujui</span>
-                        {% elif k.status_penerimaan == 'Menunggu' %}
-                        <span class="px-2 py-1 rounded-md bg-amber-500/10 text-amber-500 text-xs font-bold uppercase tracking-wider border border-amber-500/20">Menunggu</span>
-                        {% else %}
-                        <span class="px-2 py-1 rounded-md bg-rose-500/10 text-rose-500 text-xs font-bold uppercase tracking-wider border border-rose-500/20">Ditolak</span>
-                        {% endif %}
+            <tbody class="divide-y divide-white/5">
+                {% for klaim in klaim_list %}
+                <tr class="hover:bg-white/[0.02] transition-colors text-sm">
+                    <td class="px-6 py-4 font-mono text-xs text-electric">CLM-{{ klaim.id|stringformat:"03d" }}</td>
+                    <td class="px-6 py-4">
+                        <div class="font-semibold text-white">{% firstof klaim.nama_maskapai klaim.maskapai %}</div>
                     </td>
-                    <td class="p-4 text-center">
-                        {% if k.status_penerimaan == 'Menunggu' %}
-                        <div class="flex justify-center space-x-2">
-                            <button 
-                                onclick="handleEdit(this)"
-                                data-id="{{ k.id }}"
-                                data-maskapai="{{ k.maskapai|escapejs }}"
-                                data-asal="{{ k.bandara_asal|escapejs }}"
-                                data-tujuan="{{ k.bandara_tujuan|escapejs }}"
-                                data-tanggal="{{ k.tanggal_penerbangan|date:'Y-m-d' }}"
-                                data-flight="{{ k.flight_number|escapejs }}"
-                                data-kelas="{{ k.kelas_kabin|escapejs }}"
-                                data-tiket="{{ k.nomor_tiket|escapejs }}"
-                                data-pnr="{{ k.pnr|escapejs }}"
+                    <td class="px-6 py-4 text-white">
+                        {{ klaim.bandara_asal }} <i class="fa-solid fa-arrow-right mx-2 text-[10px] text-slate-600"></i> {{ klaim.bandara_tujuan }}
+                    </td>
+                    <td class="px-6 py-4 text-slate-300">{{ klaim.tanggal_penerbangan|date:"Y-m-d" }}</td>
+                    <td class="px-6 py-4 font-mono text-xs text-slate-400">{% firstof klaim.nomor_penerbangan klaim.flight_number %}</td>
+                    <td class="px-6 py-4 text-slate-300">{% firstof klaim.kelas klaim.kelas_kabin %}</td>
+                    <td class="px-6 py-4">
+                        <span class="status-cell px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider
+                            {% if klaim.status_penerimaan == 'Disetujui' %}bg-emerald-500/10 text-emerald-400 border border-emerald-500/20
+                            {% elif klaim.status_penerimaan == 'Ditolak' %}bg-rose-500/10 text-rose-400 border border-rose-500/20
+                            {% else %}bg-amber-500/10 text-amber-400 border border-amber-500/20{% endif %}">
+                            {{ klaim.status_penerimaan }}
+                        </span>
+                    </td>
+                    <td class="px-6 py-4 text-slate-400 text-xs">{{ klaim.timestamp|date:"Y-m-d H:i:s" }}</td>
+                    <td class="px-6 py-4 text-right">
+                        {% if klaim.status_penerimaan == 'Menunggu' %}
+                        <div class="flex justify-end space-x-2">
+                            <button onclick="handleEdit(this)" 
+                                data-id="{{ klaim.id }}" 
+                                data-maskapai="{{ klaim.maskapai }}"
+                                data-asal="{{ klaim.bandara_asal }}"
+                                data-tujuan="{{ klaim.bandara_tujuan }}"
+                                data-tanggal="{{ klaim.tanggal_penerbangan|date:'Y-m-d' }}"
+                                data-flight="{% firstof klaim.nomor_penerbangan klaim.flight_number %}"
+                                data-kelas="{% firstof klaim.kelas klaim.kelas_kabin %}"
+                                data-tiket="{{ klaim.nomor_tiket }}"
+                                data-pnr="{% firstof klaim.kode_pnr klaim.pnr %}"
                                 class="p-2 text-slate-400 hover:text-electric transition-colors">
-                                <i class="fa-solid fa-pen"></i>
+                                <i class="fa-solid fa-pen-to-square"></i>
                             </button>
-
-                            <button 
-                                onclick="confirmDelete('{{ k.id }}')" 
-                                class="p-2 text-slate-400 hover:text-rose-500 transition-colors">
+                            <button onclick="openDeleteModal('{{ klaim.id }}')" class="p-2 text-slate-400 hover:text-rose-500 transition-colors">
                                 <i class="fa-solid fa-trash"></i>
                             </button>
                         </div>
                         {% else %}
-                        <span class="text-slate-600 text-xs">Selesai</span>
+                        <span class="text-slate-600 text-xs">-</span>
                         {% endif %}
                     </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="9" class="px-6 py-10 text-center text-slate-500">Belum ada data klaim.</td>
                 </tr>
                 {% endfor %}
             </tbody>
@@ -86,164 +91,198 @@
     </div>
 </div>
 
-<div id="modal-klaim" class="hidden fixed inset-0 z-50 overflow-y-auto bg-black/60 backdrop-blur-sm">
-    <div class="flex items-center justify-center min-h-screen p-4">
-        <div class="bg-slate-900 border border-white/10 rounded-2xl w-full max-w-2xl shadow-2xl">
-            <div class="p-6 border-b border-white/10 flex justify-between items-center">
-                <h3 class="text-xl font-bold text-white">Ajukan Klaim Baru</h3>
-                <button onclick="toggleModal('modal-klaim')" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark text-xl"></i></button>
+<div id="modal-klaim" class="fixed inset-0 z-50 hidden bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-[#000B1B] border border-white/10 w-full max-w-lg rounded-2xl shadow-2xl overflow-hidden">
+        <form action="{% url 'ajukan_klaim' %}" method="POST" class="p-6">
+            {% csrf_token %}
+            <h3 class="text-xl font-bold text-white mb-4">Ajukan Klaim Baru</h3>
+            <div class="grid grid-cols-2 gap-4">
+                <div class="col-span-2">
+                    <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Nama Maskapai</label>
+                    <select name="nama_maskapai" required class="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2 text-white outline-none focus:border-electric transition-all text-sm">
+                        <option value="" class="bg-[#000B1B]">Pilih Maskapai</option>
+                        {% for maskapai in maskapai_choices %}
+                        <option value="{{ maskapai.kode_maskapai }}" class="bg-[#000B1B]">{{ maskapai.nama_maskapai }} ({{ maskapai.kode_maskapai }})</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Bandara Asal</label>
+                    <select name="bandara_asal" required class="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2 text-white outline-none focus:border-electric transition-all text-sm">
+                        <option value="" class="bg-[#000B1B]">Pilih Asal</option>
+                        {% for bandara in bandara_choices %}
+                        <option value="{{ bandara.iata_code }}" class="bg-[#000B1B]">{{ bandara.iata_code }} - {{ bandara.nama }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Bandara Tujuan</label>
+                    <select name="bandara_tujuan" required class="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2 text-white outline-none focus:border-electric transition-all text-sm">
+                        <option value="" class="bg-[#000B1B]">Pilih Tujuan</option>
+                        {% for bandara in bandara_choices %}
+                        <option value="{{ bandara.iata_code }}" class="bg-[#000B1B]">{{ bandara.iata_code }} - {{ bandara.nama }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 uppercase mb-1">No. Penerbangan</label>
+                    <input type="text" name="nomor_penerbangan" required class="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2 text-white outline-none focus:border-electric transition-all text-sm">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Tanggal</label>
+                    <input type="date" name="tanggal_penerbangan" required class="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2 text-white outline-none focus:border-electric transition-all text-sm">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Kelas</label>
+                    <select name="kelas" required class="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2 text-white outline-none focus:border-electric transition-all text-sm">
+                        {% for kelas in kelas_choices %}
+                        <option value="{{ kelas }}" class="bg-[#000B1B]">{{ kelas }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-span-2">
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Nomor Tiket</label>
+                            <input type="text" name="nomor_tiket" required class="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2 text-white outline-none focus:border-electric transition-all text-sm font-mono uppercase">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Kode PNR</label>
+                            <input type="text" name="kode_pnr" required class="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2 text-white outline-none focus:border-electric transition-all text-sm font-mono uppercase">
+                        </div>
+                    </div>
+                </div>
             </div>
-            <form action="{% url 'ajukan_klaim' %}" method="POST" class="p-6">
-                {% csrf_token %}
-                <div class="grid grid-cols-2 gap-4">
-                    <div>
-                        <label class="block text-sm font-medium text-slate-400 mb-2">Maskapai</label>
-                        <select name="maskapai" class="w-full bg-slate-800 border border-white/10 rounded-lg px-4 py-2.5 text-white cursor-pointer">
-                            <option value="Garuda Indonesia">Garuda Indonesia</option>
-                            <option value="Singapore Airlines">Singapore Airlines</option>
-                            <option value="Qatar Airways">Qatar Airways</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-slate-400 mb-2">Kelas Kabin</label>
-                        <select name="kelas_kabin" class="w-full bg-slate-800 border border-white/10 rounded-lg px-4 py-2.5 text-white cursor-pointer">
-                            <option value="Economy">Economy</option>
-                            <option value="Business">Business</option>
-                            <option value="First Class">First Class</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-slate-400 mb-2">Bandara Asal</label>
-                        <select name="bandara_asal" class="w-full bg-slate-800 border border-white/10 rounded-lg px-4 py-2.5 text-white cursor-pointer">
-                            <option value="CGK">Soekarno-Hatta (CGK)</option>
-                            <option value="SIN">Changi (SIN)</option>
-                            <option value="DPS">Ngurah Rai (DPS)</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-slate-400 mb-2">Bandara Tujuan</label>
-                        <select name="bandara_tujuan" class="w-full bg-slate-800 border border-white/10 rounded-lg px-4 py-2.5 text-white cursor-pointer">
-                            <option value="CGK">Soekarno-Hatta (CGK)</option>
-                            <option value="SIN">Changi (SIN)</option>
-                            <option value="DPS">Ngurah Rai (DPS)</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-slate-400 mb-2">Tanggal Penerbangan</label>
-                        <input type="date" name="tanggal_penerbangan" class="w-full bg-slate-800 border border-white/10 rounded-lg px-4 py-2.5 text-white">
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-slate-400 mb-2">Flight Number</label>
-                        <input type="text" name="flight_number" placeholder="Contoh: GA123" class="w-full bg-slate-800 border border-white/10 rounded-lg px-4 py-2.5 text-white">
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-slate-400 mb-2">Nomor Tiket</label>
-                        <input type="text" name="nomor_tiket" placeholder="13 Digit" class="w-full bg-slate-800 border border-white/10 rounded-lg px-4 py-2.5 text-white">
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-slate-400 mb-2">PNR</label>
-                        <input type="text" name="pnr" placeholder="6 Digit" class="w-full bg-slate-800 border border-white/10 rounded-lg px-4 py-2.5 text-white">
-                    </div>
-                </div>
-                <div class="mt-8 flex justify-end space-x-3">
-                    <button type="button" onclick="toggleModal('modal-klaim')" class="px-6 py-2.5 rounded-lg text-slate-400 hover:bg-white/5">Batal</button>
-                    <button type="submit" class="bg-electric px-8 py-2.5 rounded-lg text-white font-bold transition-all shadow-lg shadow-blue-900/20">Ajukan</button>
-                </div>
-            </form>
-        </div>
+            <div class="flex justify-end mt-6 space-x-3">
+                <button type="button" onclick="toggleModal('modal-klaim')" class="px-4 py-2 text-slate-400 hover:text-white font-medium transition-colors">Batal</button>
+                <button type="submit" class="bg-electric hover:bg-blue-600 px-6 py-2 rounded-lg text-white font-bold transition-all shadow-lg shadow-blue-500/20">Kirim Pengajuan</button>
+            </div>
+        </form>
     </div>
 </div>
 
-<div id="modal-edit" class="hidden fixed inset-0 z-50 overflow-y-auto bg-black/60 backdrop-blur-sm">
-    <div class="flex items-center justify-center min-h-screen p-4">
-        <div class="bg-slate-900 border border-white/10 rounded-2xl w-full max-w-2xl shadow-2xl">
-            <div class="p-6 border-b border-white/10 flex justify-between items-center">
-                <h3 class="text-xl font-bold text-white">Edit Klaim <span id="edit-clm-id" class="text-electric"></span></h3>
-                <button onclick="toggleModal('modal-edit')" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark text-xl"></i></button>
+<div id="modal-edit" class="fixed inset-0 z-50 hidden bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-[#000B1B] border border-white/10 w-full max-w-lg rounded-2xl shadow-2xl overflow-hidden">
+        <form id="form-edit" method="POST" class="p-6">
+            {% csrf_token %}
+            <h3 class="text-xl font-bold text-white mb-4">Edit Klaim <span id="edit-clm-id" class="text-electric"></span></h3>
+            <div class="grid grid-cols-2 gap-4">
+                <div class="col-span-2">
+                    <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Nama Maskapai</label>
+                    <select id="edit-maskapai" name="nama_maskapai" class="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2 text-white outline-none focus:border-electric transition-all text-sm">
+                        {% for maskapai in maskapai_choices %}
+                        <option value="{{ maskapai.kode_maskapai }}" class="bg-[#000B1B]">{{ maskapai.nama_maskapai }} ({{ maskapai.kode_maskapai }})</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Bandara Asal</label>
+                    <select id="edit-asal" name="bandara_asal" class="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2 text-white outline-none focus:border-electric transition-all text-sm">
+                        {% for bandara in bandara_choices %}
+                        <option value="{{ bandara.iata_code }}" class="bg-[#000B1B]">{{ bandara.iata_code }} - {{ bandara.nama }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Bandara Tujuan</label>
+                    <select id="edit-tujuan" name="bandara_tujuan" class="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2 text-white outline-none focus:border-electric transition-all text-sm">
+                        {% for bandara in bandara_choices %}
+                        <option value="{{ bandara.iata_code }}" class="bg-[#000B1B]">{{ bandara.iata_code }} - {{ bandara.nama }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 uppercase mb-1">No. Penerbangan</label>
+                    <input type="text" id="edit-flight" name="nomor_penerbangan" class="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2 text-white outline-none focus:border-electric transition-all text-sm">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Tanggal</label>
+                    <input type="date" id="edit-tanggal" name="tanggal_penerbangan" class="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2 text-white outline-none focus:border-electric transition-all text-sm">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Kelas</label>
+                    <select id="edit-kelas" name="kelas" class="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2 text-white outline-none focus:border-electric transition-all text-sm">
+                        {% for kelas in kelas_choices %}
+                        <option value="{{ kelas }}" class="bg-[#000B1B]">{{ kelas }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-span-2">
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Nomor Tiket</label>
+                            <input type="text" id="edit-tiket" name="nomor_tiket" class="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2 text-white outline-none focus:border-electric transition-all text-sm font-mono uppercase">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Kode PNR</label>
+                            <input type="text" id="edit-pnr" name="kode_pnr" required class="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2 text-white outline-none focus:border-electric transition-all text-sm font-mono uppercase">
+                        </div>
+                    </div>
+                </div>
             </div>
-            <form id="form-edit" method="POST" class="p-6">
-                {% csrf_token %}
-                <div class="grid grid-cols-2 gap-4">
-                    <div>
-                        <label class="block text-sm font-medium text-slate-400 mb-2">Maskapai</label>
-                        <select id="edit-maskapai" name="maskapai" class="w-full bg-slate-800 border border-white/10 rounded-lg px-4 py-2.5 text-white">
-                            <option value="Garuda Indonesia">Garuda Indonesia</option>
-                            <option value="Singapore Airlines">Singapore Airlines</option>
-                            <option value="Qatar Airways">Qatar Airways</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-slate-400 mb-2">Kelas Kabin</label>
-                        <select id="edit-kelas" name="kelas_kabin" class="w-full bg-slate-800 border border-white/10 rounded-lg px-4 py-2.5 text-white">
-                            <option value="Economy">Economy</option>
-                            <option value="Business">Business</option>
-                            <option value="First Class">First Class</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-slate-400 mb-2">Bandara Asal</label>
-                        <select id="edit-asal" name="bandara_asal" class="w-full bg-slate-800 border border-white/10 rounded-lg px-4 py-2.5 text-white">
-                            <option value="CGK">Soekarno-Hatta (CGK)</option>
-                            <option value="SIN">Changi (SIN)</option>
-                            <option value="DPS">Ngurah Rai (DPS)</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-slate-400 mb-2">Bandara Tujuan</label>
-                        <select id="edit-tujuan" name="bandara_tujuan" class="w-full bg-slate-800 border border-white/10 rounded-lg px-4 py-2.5 text-white">
-                            <option value="CGK">Soekarno-Hatta (CGK)</option>
-                            <option value="SIN">Changi (SIN)</option>
-                            <option value="DPS">Ngurah Rai (DPS)</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-slate-400 mb-2">Tanggal Penerbangan</label>
-                        <input type="date" id="edit-tanggal" name="tanggal_penerbangan" class="w-full bg-slate-800 border border-white/10 rounded-lg px-4 py-2.5 text-white">
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-slate-400 mb-2">Flight Number</label>
-                        <input type="text" id="edit-flight" name="flight_number" class="w-full bg-slate-800 border border-white/10 rounded-lg px-4 py-2.5 text-white">
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-slate-400 mb-2">Nomor Tiket</label>
-                        <input type="text" id="edit-tiket" name="nomor_tiket" class="w-full bg-slate-800 border border-white/10 rounded-lg px-4 py-2.5 text-white">
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-slate-400 mb-2">PNR</label>
-                        <input type="text" id="edit-pnr" name="pnr" class="w-full bg-slate-800 border border-white/10 rounded-lg px-4 py-2.5 text-white">
-                    </div>
+            <div class="flex justify-end mt-6 space-x-3">
+                <button type="button" onclick="toggleModal('modal-edit')" class="px-4 py-2 text-slate-400 hover:text-white font-medium transition-colors">Batal</button>
+                <button type="submit" class="bg-electric hover:bg-blue-600 px-6 py-2 rounded-lg text-white font-bold transition-all shadow-lg shadow-blue-500/20">Simpan Perubahan</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div id="modal-delete" class="fixed inset-0 z-50 hidden bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-[#000B1B] border border-white/10 w-full max-w-md rounded-2xl shadow-2xl overflow-hidden">
+        <div class="p-6">
+            <div class="flex justify-between items-start mb-6">
+                <div>
+                    <h3 class="text-xl font-bold text-white">Batalkan Klaim</h3>
+                    <p class="text-slate-400 text-xs mt-1">Konfirmasi pembatalan pengajuan missing miles.</p>
                 </div>
-                <div class="mt-8 flex justify-end space-x-3">
-                    <button type="button" onclick="toggleModal('modal-edit')" class="px-6 py-2.5 rounded-lg text-slate-400">Batal</button>
-                    <button type="submit" class="bg-emerald-600 px-8 py-2.5 rounded-lg text-white font-bold">Simpan Perubahan</button>
+                <button type="button" onclick="toggleModal('modal-delete')" class="text-slate-500 hover:text-white transition-colors"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="bg-white/5 border border-white/5 rounded-xl p-4 mb-6">
+                <div class="flex justify-between">
+                    <span class="text-xs text-slate-500 uppercase font-bold">ID Klaim</span>
+                    <span id="delete-clm-id" class="text-xs text-white font-mono"></span>
                 </div>
-            </form>
+            </div>
+            <p class="text-sm text-slate-400 mb-8 leading-relaxed">Pengajuan klaim yang masih menunggu akan dihapus dan tidak dapat diproses staf.</p>
+            <div class="flex justify-end space-x-3">
+                <button type="button" onclick="toggleModal('modal-delete')" class="px-5 py-2 text-sm font-bold text-slate-400 hover:text-white transition-colors">Batal</button>
+                <a id="delete-klaim-link" href="#" class="px-5 py-2 text-sm font-bold text-white bg-rose-600 hover:bg-rose-500 rounded-lg transition-all shadow-lg shadow-rose-500/20">Kirim</a>
+            </div>
         </div>
     </div>
 </div>
 
 <script>
+    function toggleModal(id) {
+        const modal = document.getElementById(id);
+        modal.classList.toggle('hidden');
+    }
+
     function filterTable(status, btn) {
-        const rows = document.querySelectorAll('.klaim-row');
-        const buttons = document.querySelectorAll('.filter-btn');
+        const table = document.getElementById('table-klaim');
+        const rows = table.getElementsByTagName('tbody')[0].getElementsByTagName('tr');
         
-        buttons.forEach(b => {
+        document.querySelectorAll('.filter-btn').forEach(b => {
             b.classList.remove('bg-electric', 'text-white');
             b.classList.add('bg-white/5', 'text-slate-400');
         });
         btn.classList.add('bg-electric', 'text-white');
+        btn.classList.remove('bg-white/5', 'text-slate-400');
 
-        rows.forEach(row => {
-            if (status === 'Semua' || row.getAttribute('data-status') === status) {
+        for (let row of rows) {
+            if (status === 'Semua') {
                 row.style.display = '';
             } else {
-                row.style.display = 'none';
+                const statusCell = row.querySelector('.status-cell');
+                if (!statusCell) {
+                    row.style.display = 'none';
+                    continue;
+                }
+                const rowStatus = statusCell.textContent.trim().toLowerCase();
+                row.style.display = rowStatus === status.toLowerCase() ? '' : 'none';
             }
-        });
-    }
-
-    function toggleModal(id) {
-        document.getElementById(id).classList.toggle('hidden');
+        }
     }
 
     function openEditModal(id, maskapai, asal, tujuan, tanggal, flight, kelas, tiket, pnr) {
@@ -256,16 +295,16 @@
         document.getElementById('edit-kelas').value = kelas;
         document.getElementById('edit-tiket').value = tiket;
         document.getElementById('edit-pnr').value = pnr;
-        
+  
         document.getElementById('form-edit').action = "/klaim-miles/edit/" + id + "/";
         
         toggleModal('modal-edit');
     }
 
-    function confirmDelete(id) {
-        if (confirm("Batalkan pengajuan klaim #" + id + "?")) {
-            window.location.href = `/klaim-miles/hapus/${id}/`;
-        }
+    function openDeleteModal(id) {
+        document.getElementById('delete-clm-id').innerText = "#" + id;
+        document.getElementById('delete-klaim-link').href = `/klaim-miles/hapus/${id}/`;
+        toggleModal('modal-delete');
     }
 
     function handleEdit(el) {
@@ -282,15 +321,4 @@
         );
     }
 </script>
-
-<style>
-    input[type="date"]::-webkit-calendar-picker-indicator {
-        filter: invert(1);
-        opacity: 0.6;
-    }
-    select option {
-        background-color: #1e293b;
-        color: white;
-    }
-</style>
 {% endblock %}
