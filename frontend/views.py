@@ -493,35 +493,108 @@ def form_member_view(request):
 def pengaturan_profil_view(request):
     role = request.session.get('role')
     name = request.session.get('name')
+    email = request.session.get('email')
     
     if not role:
         return redirect('login')
 
+    if request.method == 'POST':
+        try:
+            update_pengguna = """
+                UPDATE pengguna
+                SET salutation = %s,
+                    first_mid_name = %s,
+                    last_name = %s,
+                    country_code = %s,
+                    mobile_number = %s,
+                    tanggal_lahir = %s,
+                    kewarganegaraan = %s
+                WHERE email = %s
+            """
+            execute_query(update_pengguna, [
+                request.POST.get('salutation'),
+                request.POST.get('first_name'),
+                request.POST.get('last_name'),
+                request.POST.get('country_code'),
+                request.POST.get('phone'),
+                request.POST.get('birth_date'),
+                request.POST.get('nationality'),
+                email
+            ])
+
+            if role == 'staf' and request.POST.get('maskapai'):
+                kode_maskapai = resolve_kode_maskapai(request.POST.get('maskapai'))
+                if not kode_maskapai:
+                    messages.error(request, "Kode maskapai tidak ditemukan.")
+                    return redirect('pengaturan_profil')
+                execute_query("UPDATE staf SET kode_maskapai = %s WHERE email = %s", [kode_maskapai, email])
+
+            old_password = request.POST.get('old_password')
+            new_password = request.POST.get('new_password')
+            confirm_password = request.POST.get('confirm_password')
+            if old_password or new_password or confirm_password:
+                current = execute_query("SELECT password FROM pengguna WHERE email = %s", [email], fetch=True)
+                if not current or current[0]['password'] != old_password:
+                    messages.error(request, "Password lama tidak sesuai.")
+                    return redirect('pengaturan_profil')
+                if not new_password or new_password != confirm_password:
+                    messages.error(request, "Konfirmasi password baru tidak sesuai.")
+                    return redirect('pengaturan_profil')
+                execute_query("UPDATE pengguna SET password = %s WHERE email = %s", [new_password, email])
+
+            messages.success(request, 'Profil berhasil diperbarui!')
+        except Exception as e:
+            messages.error(request, f'Gagal memperbarui profil: {e}')
+        return redirect('pengaturan_profil')
+
+    if role == 'member':
+        query = """
+            SELECT p.email, p.salutation, p.first_mid_name, p.last_name,
+                   p.country_code, p.mobile_number, p.tanggal_lahir, p.kewarganegaraan,
+                   m.nomor_member, m.tanggal_bergabung
+            FROM pengguna p
+            JOIN member m ON p.email = m.email
+            WHERE p.email = %s
+        """
+    else:
+        query = """
+            SELECT p.email, p.salutation, p.first_mid_name, p.last_name,
+                   p.country_code, p.mobile_number, p.tanggal_lahir, p.kewarganegaraan,
+                   s.id_staf, s.kode_maskapai, mas.nama_maskapai
+            FROM pengguna p
+            JOIN staf s ON p.email = s.email
+            LEFT JOIN maskapai mas ON s.kode_maskapai = mas.kode_maskapai
+            WHERE p.email = %s
+        """
+
+    profile_rows = execute_query(query, [email], fetch=True)
+    if not profile_rows:
+        messages.error(request, "Profil tidak ditemukan.")
+        return redirect('dashboard')
+
+    row = profile_rows[0]
     profile_data = {
-        'email': 'member@aeromiles.com' if role == 'member' else 'admin@aeromiles.com',
-        'salutation': 'Mr.',
-        'first_name': 'John William' if role == 'member' else 'Admin',
-        'last_name': 'Doe' if role == 'member' else 'Aero',
-        'country_code': '+62',
-        'phone': '81234567890',
-        'nationality': 'Indonesia',
-        'birth_date': '1995-01-01',
+        'email': row['email'],
+        'salutation': row['salutation'],
+        'first_name': row['first_mid_name'],
+        'last_name': row['last_name'],
+        'country_code': row['country_code'],
+        'phone': row['mobile_number'],
+        'nationality': row['kewarganegaraan'],
+        'birth_date': row['tanggal_lahir'].isoformat() if row['tanggal_lahir'] else '',
     }
 
     if role == 'member':
         profile_data.update({
-            'nomor_member': 'M0001',
-            'tgl_bergabung': '2024-01-15'
+            'nomor_member': row['nomor_member'],
+            'tgl_bergabung': row['tanggal_bergabung'].isoformat() if row['tanggal_bergabung'] else ''
         })
     else:
         profile_data.update({
-            'id_staf': 'S001',
-            'maskapai': 'GIAA'
+            'id_staf': row['id_staf'],
+            'maskapai': row['kode_maskapai'],
+            'nama_maskapai': row.get('nama_maskapai') or row['kode_maskapai']
         })
-
-    if request.method == 'POST':
-        messages.success(request, 'Profil berhasil diperbarui!')
-        return redirect('pengaturan_profil')
 
     return render(request, 'pengaturan_profil.html', {
         'role': role, 
@@ -530,148 +603,300 @@ def pengaturan_profil_view(request):
     })
 
 def klaim_miles_view(request):
-    role = request.session.get('role')
-    if role != 'member':
-        return redirect('dashboard')
-
-    klaim_list = [
-        {
-            'id': 1,
-            'maskapai': 'GA',
-            'bandara_asal': 'CGK',
-            'bandara_tujuan': 'DPS',
-            'tanggal_penerbangan': datetime.date(2024, 10, 1),
-            'flight_number': 'GA404',
-            'kelas_kabin': 'Business',
-            'status_penerimaan': 'Disetujui',
-            'timestamp': '2024-10-05 18:45:00'
-        },
-        {
-            'id': 2,
-            'maskapai': 'SQ',
-            'bandara_asal': 'SIN',
-            'bandara_tujuan': 'NRT',
-            'tanggal_penerbangan': datetime.date(2024, 11, 15),
-            'flight_number': 'SQ12',
-            'kelas_kabin': 'Economy',
-            'status_penerimaan': 'Menunggu',
-            'timestamp': '2024-11-20 18:45:00'
-        },
-    ]
-
-    context = {
-        'role': role,
-        'name': request.session.get('name'),
+    email_user = request.session.get('email')
+    query = """
+        SELECT c.*, mas.nama_maskapai,
+               c.flight_number AS nomor_penerbangan,
+               c.kelas_kabin AS kelas,
+               c.pnr AS kode_pnr
+        FROM claim_missing_miles c
+        LEFT JOIN maskapai mas ON c.maskapai = mas.kode_maskapai
+        WHERE c.email_member = %s
+        ORDER BY c.tanggal_penerbangan DESC
+    """
+    klaim_list = execute_query(query, [email_user], fetch=True)
+    maskapai_choices = execute_query(
+        "SELECT kode_maskapai, nama_maskapai FROM maskapai ORDER BY nama_maskapai",
+        fetch=True
+    )
+    bandara_choices = execute_query(
+        "SELECT iata_code, nama, kota FROM bandara ORDER BY iata_code",
+        fetch=True
+    )
+    return render(request, 'klaim_miles.html', {
         'klaim_list': klaim_list,
-        'maskapai_choices': ['GA', 'SQ', 'MH'],
-        'bandara_choices': ['CGK', 'SIN', 'DPS', 'NRT'],
-        'kelas_choices': ['Economy', 'Business', 'First']
-    }
-    return render(request, 'klaim_miles.html', context)
+        'maskapai_choices': maskapai_choices,
+        'bandara_choices': bandara_choices,
+        'kelas_choices': ['Economy', 'Business', 'First'],
+    })
+
+def resolve_kode_maskapai(maskapai_input):
+    maskapai = (maskapai_input or '').strip()
+    if not maskapai:
+        return None
+
+    query = """
+        SELECT kode_maskapai
+        FROM maskapai
+        WHERE UPPER(kode_maskapai) = UPPER(%s)
+           OR LOWER(nama_maskapai) = LOWER(%s)
+        LIMIT 1
+    """
+    result = execute_query(query, [maskapai, maskapai], fetch=True)
+    return result[0]['kode_maskapai'] if result else None
+
+def resolve_iata_code(bandara_input):
+    bandara = (bandara_input or '').strip()
+    if not bandara:
+        return None
+
+    query = """
+        SELECT iata_code
+        FROM bandara
+        WHERE UPPER(iata_code) = UPPER(%s)
+           OR LOWER(nama) = LOWER(%s)
+           OR LOWER(kota) = LOWER(%s)
+        LIMIT 1
+    """
+    result = execute_query(query, [bandara, bandara, bandara], fetch=True)
+    return result[0]['iata_code'] if result else None
+
+def normalize_kelas_kabin(kelas_input):
+    kelas = (kelas_input or '').strip().lower()
+    if kelas == 'business':
+        return 'Business'
+    if kelas in ['first', 'first class']:
+        return 'First'
+    return 'Economy'
 
 def ajukan_klaim(request):
-    if request.method == 'POST':
-        messages.success(request, 'Klaim berhasil diajukan!')
+    if request.method == "POST":
+        email_member = request.session.get('email')
+        try:
+            kode_maskapai = resolve_kode_maskapai(request.POST.get('nama_maskapai'))
+            if not kode_maskapai:
+                messages.error(request, "Maskapai tidak ditemukan. Gunakan kode seperti GA/SQ/MH atau nama maskapai yang valid.")
+                return redirect('klaim_miles')
+            bandara_asal = resolve_iata_code(request.POST.get('bandara_asal'))
+            bandara_tujuan = resolve_iata_code(request.POST.get('bandara_tujuan'))
+            if not bandara_asal or not bandara_tujuan:
+                messages.error(request, "Bandara tidak ditemukan. Gunakan kode seperti CGK/DPS/SIN atau nama bandara yang valid.")
+                return redirect('klaim_miles')
+
+            query = """
+                INSERT INTO claim_missing_miles 
+                (email_member, maskapai, bandara_asal, bandara_tujuan, tanggal_penerbangan,
+                 flight_number, nomor_tiket, kelas_kabin, pnr, status_penerimaan, timestamp)
+                VALUES (%s, %s, UPPER(%s), UPPER(%s), %s, %s, %s, %s, %s, 'Menunggu', NOW())
+            """
+            execute_query(query, [
+                email_member,
+                kode_maskapai,
+                bandara_asal,
+                bandara_tujuan,
+                request.POST.get('tanggal_penerbangan'),
+                request.POST.get('nomor_penerbangan'),
+                request.POST.get('nomor_tiket'),
+                normalize_kelas_kabin(request.POST.get('kelas')),
+                (request.POST.get('kode_pnr') or '').strip().upper()
+            ])
+            messages.success(request, "Klaim berhasil diajukan!")
+        except Exception as e:
+            messages.error(request, f"Gagal mengajukan klaim: {e}")
+            
     return redirect('klaim_miles')
 
 def edit_klaim(request, id):
-    if request.method == 'POST':
-        messages.success(request, f'Klaim ID {id} berhasil diupdate!')
+    if request.method == "POST":
+        email_user = request.session.get('email')
+        try:
+            check_query = "SELECT status_penerimaan FROM claim_missing_miles WHERE id = %s AND email_member = %s"
+            curr = execute_query(check_query, [id, email_user], fetch=True)
+            
+            if not curr:
+                messages.error(request, "Data tidak ditemukan.")
+            elif curr[0]['status_penerimaan'] != 'Menunggu':
+                messages.error(request, "Klaim tidak dapat diubah karena sudah diproses.")
+            else:
+                kode_maskapai = resolve_kode_maskapai(request.POST.get('nama_maskapai'))
+                if not kode_maskapai:
+                    messages.error(request, "Maskapai tidak ditemukan. Gunakan kode seperti GA/SQ/MH atau nama maskapai yang valid.")
+                    return redirect('klaim_miles')
+                bandara_asal = resolve_iata_code(request.POST.get('bandara_asal'))
+                bandara_tujuan = resolve_iata_code(request.POST.get('bandara_tujuan'))
+                if not bandara_asal or not bandara_tujuan:
+                    messages.error(request, "Bandara tidak ditemukan. Gunakan kode seperti CGK/DPS/SIN atau nama bandara yang valid.")
+                    return redirect('klaim_miles')
+
+                update_query = """
+                    UPDATE claim_missing_miles 
+                    SET maskapai = %s,
+                        bandara_asal = UPPER(%s),
+                        bandara_tujuan = UPPER(%s), 
+                        tanggal_penerbangan = %s,
+                        flight_number = %s,
+                        nomor_tiket = %s,
+                        kelas_kabin = %s,
+                        pnr = %s
+                    WHERE id = %s AND email_member = %s
+                """
+                execute_query(update_query, [
+                    kode_maskapai,
+                    bandara_asal, 
+                    bandara_tujuan,
+                    request.POST.get('tanggal_penerbangan'), 
+                    request.POST.get('nomor_penerbangan'),
+                    request.POST.get('nomor_tiket'),
+                    normalize_kelas_kabin(request.POST.get('kelas')),
+                    (request.POST.get('kode_pnr') or '').strip().upper(),
+                    id,
+                    email_user
+                ])
+                messages.success(request, f"Klaim #{id} berhasil diperbarui.")
+        except Exception as e:
+            messages.error(request, f"Gagal: {e}")
+            
     return redirect('klaim_miles')
 
 def batalkan_klaim(request, id):
-    messages.success(request, f'Klaim ID {id} berhasil dihapus!')
+    email_user = request.session.get('email')
+    try:
+        query = """
+            DELETE FROM claim_missing_miles
+            WHERE id = %s AND email_member = %s AND status_penerimaan = 'Menunggu'
+            RETURNING id
+        """
+        deleted = execute_query(query, [id, email_user], fetch=True)
+        if deleted:
+            messages.success(request, "Pengajuan klaim berhasil dibatalkan.")
+        else:
+            messages.error(request, "Klaim tidak ditemukan atau sudah diproses.")
+    except Exception:
+        messages.error(request, "Gagal membatalkan klaim.")
     return redirect('klaim_miles')
 
 def kelola_klaim_staf(request):
-    role = request.session.get('role')
-    if role != 'staf':
-        return redirect('dashboard')
-
-    klaim_staf_list = [
-        {
-            'id': 1,
-            'nama_member': 'John W. Doe',
-            'email_member': 'member@aeromiles.com',
-            'maskapai': 'GA',
-            'rute': 'CGK → DPS',
-            'tanggal': '2024-10-01',
-            'flight': 'GA404',
-            'kelas': 'Business',
-            'tanggal_pengajuan': '2024-10-05 18:45:00',
-            'status': 'Disetujui'
-        },
-        {
-            'id': 2,
-            'nama_member': 'John W. Doe',
-            'email_member': 'member@aeromiles.com',
-            'maskapai': 'SQ',
-            'rute': 'SIN → NRT',
-            'tanggal': '2024-11-15',
-            'flight': 'SQ12',
-            'kelas': 'Economy',
-            'tanggal_pengajuan': '2024-11-20 18:45:00',
-            'status': 'Menunggu'
-        },
-        {
-            'id': 3,
-            'nama_member': 'Jane Smith',
-            'email_member': 'jane@example.com',
-            'maskapai': 'GA',
-            'rute': 'CGK → SUB',
-            'tanggal': '2024-12-01',
-            'flight': 'GA310',
-            'kelas': 'Economy',
-            'tanggal_pengajuan': '2024-12-05 18:45:00',
-            'status': 'Menunggu'
-        }
-    ]
-
-    return render(request, 'kelola_klaim_staf.html', {'klaim_list': klaim_staf_list})
+    query = """
+        SELECT c.*, p.first_mid_name, p.last_name, mas.nama_maskapai,
+               c.flight_number AS nomor_penerbangan,
+               c.kelas_kabin AS kelas,
+               c.pnr AS kode_pnr
+        FROM claim_missing_miles c
+        JOIN pengguna p ON c.email_member = p.email
+        LEFT JOIN maskapai mas ON c.maskapai = mas.kode_maskapai
+        ORDER BY CASE WHEN status_penerimaan = 'Menunggu' THEN 1 ELSE 2 END, tanggal_penerbangan DESC
+    """
+    klaim_staf_list = execute_query(query, fetch=True)
+    return render(request, 'kelola_klaim_staf.html', {'klaim_staf_list': klaim_staf_list})
 
 def setujui_klaim(request, pk):
-    if request.method == 'POST':
-        messages.success(request, f'Klaim CLM-00{pk} berhasil disetujui. Miles telah ditambahkan ke member.')
+    email_staf = request.session.get('email')
+    try:
+        query_update = """
+            UPDATE claim_missing_miles
+            SET status_penerimaan = 'Disetujui', email_staf = %s
+            WHERE id = %s AND status_penerimaan = 'Menunggu'
+            RETURNING email_member
+        """
+        updated = execute_query(query_update, [email_staf, pk], fetch=True)
+        if not updated:
+            messages.error(request, "Klaim tidak ditemukan atau sudah diproses.")
+            return redirect('kelola_klaim_staf')
+        email_member = updated[0]['email_member']
+        execute_query("UPDATE member SET award_miles = award_miles + 500 WHERE email = %s", [email_member])
+        messages.success(request, f"Klaim #{pk} disetujui.")
+    except Exception:
+        messages.error(request, "Gagal memproses persetujuan.")
     return redirect('kelola_klaim_staf')
 
 def tolak_klaim(request, pk):
-    if request.method == 'POST':
-        messages.error(request, f'Klaim CLM-00{pk} telah ditolak.')
+    if request.method == "POST":
+        email_staf = request.session.get('email')
+        try:
+            query = """
+                UPDATE claim_missing_miles
+                SET status_penerimaan = 'Ditolak', email_staf = %s
+                WHERE id = %s AND status_penerimaan = 'Menunggu'
+                RETURNING id
+            """
+            updated = execute_query(query, [email_staf, pk], fetch=True)
+            if updated:
+                messages.success(request, f"Klaim #{pk} telah ditolak.")
+            else:
+                messages.error(request, "Klaim tidak ditemukan atau sudah diproses.")
+        except Exception:
+            messages.error(request, "Gagal memproses penolakan.")
     return redirect('kelola_klaim_staf')
 
 def transfer_miles(request):
-    riwayat_transfer = [
-        {
-            'waktu': '2025-01-15 10:30',
-            'nama_member': 'Jane Smith',
-            'email_member': 'jane@example.com',
-            'jumlah': -5000,
-            'catatan': 'Hadiah ulang tahun',
-            'tipe': 'Kirim'
-        },
-        {
-            'waktu': '2025-02-01 14:00',
-            'nama_member': 'Budi A. Santoso',
-            'email_member': 'budi@example.com',
-            'jumlah': 2000,
-            'catatan': '-',
-            'tipe': 'Terima'
-        }
-    ]
+    email_user = request.session.get('email')
+    res_miles = execute_query("SELECT award_miles FROM member WHERE email = %s", [email_user], fetch=True)
+    award_miles_tersedia = res_miles[0]['award_miles'] if res_miles else 0
     
-    context = {
-        'riwayat_transfer': riwayat_transfer,
-        'award_miles_tersedia': "32,000"
-    }
-    return render(request, 'transfer_miles.html', context)
+    query_history = """
+        SELECT t.*,
+               CASE WHEN t.email_member_1 = %s THEN 'Kirim' ELSE 'Terima' END AS tipe,
+               CASE WHEN t.email_member_1 = %s THEN -t.jumlah ELSE t.jumlah END AS jumlah_miles,
+               CASE WHEN t.email_member_1 = %s THEN t.email_member_2 ELSE t.email_member_1 END AS email_member,
+               CASE WHEN t.email_member_1 = %s
+                    THEN CONCAT(p2.first_mid_name, ' ', p2.last_name)
+                    ELSE CONCAT(p1.first_mid_name, ' ', p1.last_name)
+               END AS nama_member
+        FROM transfer t
+        JOIN pengguna p1 ON t.email_member_1 = p1.email
+        JOIN pengguna p2 ON t.email_member_2 = p2.email
+        WHERE email_member_1 = %s OR email_member_2 = %s 
+        ORDER BY timestamp DESC
+    """
+    riwayat_transfer = execute_query(query_history, [email_user, email_user, email_user, email_user, email_user, email_user], fetch=True)
+    return render(request, 'transfer_miles.html', {
+        'award_miles_tersedia': award_miles_tersedia,
+        'riwayat_transfer': riwayat_transfer
+    })
 
 def proses_transfer(request):
-    if request.method == 'POST':
-        email = request.POST.get('email_penerima')
-        jumlah = request.POST.get('jumlah_miles')
-        
-        messages.success(request, f'Berhasil mengirim {jumlah} miles ke {email}!')
-        
+    if request.method == "POST":
+        email_pengirim = request.session.get('email')
+        email_penerima = (request.POST.get('email_penerima') or '').strip().lower()
+        try:
+            jumlah_miles = int(request.POST.get('jumlah_miles', 0))
+        except (TypeError, ValueError):
+            jumlah_miles = 0
+        catatan = request.POST.get('catatan', '')
+
+        try:
+            if jumlah_miles <= 0:
+                messages.error(request, "Jumlah miles harus lebih dari 0.")
+                return redirect('transfer_miles')
+
+            res_penerima = execute_query("SELECT email FROM member WHERE LOWER(email) = LOWER(%s)", [email_penerima], fetch=True)
+            if not res_penerima:
+                messages.error(request, "Email member penerima tidak ditemukan.")
+                return redirect('transfer_miles')
+            
+            email_penerima = res_penerima[0]['email']
+            if email_penerima == email_pengirim:
+                messages.error(request, "Tidak dapat transfer ke diri sendiri.")
+                return redirect('transfer_miles')
+
+            res_saldo = execute_query("SELECT award_miles FROM member WHERE email = %s", [email_pengirim], fetch=True)
+            if not res_saldo or res_saldo[0]['award_miles'] < jumlah_miles:
+                messages.error(request, "Saldo Award Miles tidak mencukupi.")
+                return redirect('transfer_miles')
+            
+            execute_query("UPDATE member SET award_miles = award_miles - %s WHERE email = %s", [jumlah_miles, email_pengirim])
+            execute_query("UPDATE member SET award_miles = award_miles + %s WHERE email = %s", [jumlah_miles, email_penerima])
+            
+            query_insert = """
+                INSERT INTO transfer (email_member_1, email_member_2, timestamp, jumlah, catatan) 
+                VALUES (%s, %s, NOW(), %s, %s)
+            """
+            execute_query(query_insert, [email_pengirim, email_penerima, jumlah_miles, catatan])
+            
+            messages.success(request, f"Berhasil transfer {jumlah_miles} miles.")
+        except Exception as e:
+            messages.error(request, f"Gagal: {e}")
+            
     return redirect('transfer_miles')
 
 DUMMY_HADIAH_KATALOG = [

@@ -17,71 +17,78 @@
         
         <select id="filterMaskapai" onchange="filterTable()" class="bg-slate-800 border border-white/10 rounded-lg px-4 py-2 text-sm text-white outline-none focus:border-electric">
             <option value="">Semua Maskapai</option>
-            <option value="GA">GA</option>
-            <option value="SQ">SQ</option>
-            <option value="MH">MH</option>
+            <option value="Garuda Indonesia|GA">Garuda Indonesia</option>
+            <option value="Singapore Airlines|SQ">Singapore Airlines</option>
+            <option value="Malaysia Airlines|MH">Malaysia Airlines</option>
         </select>
 
         <input type="date" id="filterTanggal" onchange="filterTable()" class="bg-slate-800 border border-white/10 rounded-lg px-4 py-2 text-sm text-white outline-none focus:border-electric">
         
-        <button onclick="resetFilters()" class="text-xs text-slate-500 hover:text-electric transition-colors underline">Reset Filter</button>
+        <div class="relative flex-1 min-w-[300px]">
+            <i class="fa-solid fa-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-slate-500"></i>
+            <input type="text" id="filterEmail" onkeyup="filterTable()" placeholder="Cari email member..." class="w-full bg-slate-800 border border-white/10 rounded-lg pl-11 pr-4 py-2 text-sm text-white outline-none focus:border-electric transition-all">
+        </div>
     </div>
 
-    <div class="bg-slate-900/50 border border-white/10 rounded-2xl overflow-hidden backdrop-blur-md">
-        <table class="w-full text-left" id="claimTable">
+    <div class="bg-white/5 border border-white/10 rounded-2xl overflow-hidden shadow-lg">
+        <table class="w-full text-left border-collapse" id="claimTable">
             <thead>
-                <tr class="bg-white/5 border-b border-white/10">
-                    <th class="p-4 text-xs font-bold text-slate-400 uppercase tracking-wider">No Klaim</th>
-                    <th class="p-4 text-xs font-bold text-slate-400 uppercase tracking-wider">Member</th>
-                    <th class="p-4 text-xs font-bold text-slate-400 uppercase tracking-wider">Maskapai</th>
-                    <th class="p-4 text-xs font-bold text-slate-400 uppercase tracking-wider">Rute</th>
-                    <th class="p-4 text-xs font-bold text-slate-400 uppercase tracking-wider">Flight/Kelas</th>
-                    <th class="p-4 text-xs font-bold text-slate-400 uppercase tracking-wider">Tgl Pengajuan</th>
-                    <th class="p-4 text-xs font-bold text-slate-400 uppercase tracking-wider">Status</th>
-                    <th class="p-4 text-xs font-bold text-slate-400 uppercase tracking-wider">Aksi</th>
+                <tr class="text-xs font-bold text-slate-500 uppercase tracking-wider border-b border-white/10 bg-white/5">
+                    <th class="px-6 py-4">Member</th>
+                    <th class="px-6 py-4">Maskapai & No. Penerbangan</th>
+                    <th class="px-6 py-4">Rute</th>
+                    <th class="px-6 py-4">Tanggal</th>
+                    <th class="px-6 py-4">No. Tiket & PNR</th>
+                    <th class="px-6 py-4">Status</th>
+                    <th class="px-6 py-4 text-right">Aksi</th>
                 </tr>
             </thead>
             <tbody class="divide-y divide-white/5">
-                {% for k in klaim_list %}
-                <tr class="claim-row hover:bg-white/[0.02] transition-colors" 
-                    data-status="{{ k.status|upper }}" 
-                    data-maskapai="{{ k.maskapai }}" 
-                    data-tanggal="{{ k.tanggal_pengajuan|slice:':10' }}">
-                    
-                    <td class="p-4 font-mono text-sm text-electric">CLM-00{{ k.id }}</td>
-                    <td class="p-4">
-                        <div class="text-sm font-medium text-white">{{ k.nama_member }}</div>
-                        <div class="text-xs text-slate-500">{{ k.email_member }}</div>
+                {% for klaim in klaim_staf_list %}
+                <tr class="hover:bg-white/[0.02] transition-colors text-sm">
+                    <td class="px-6 py-4">
+                        <div class="font-semibold text-white email-cell">{{ klaim.email_member }}</div>
+                        <div class="text-[10px] text-slate-500 font-mono">ID: {{ klaim.id }}</div>
                     </td>
-                    <td class="p-4 text-sm text-slate-300">{{ k.maskapai }}</td>
-                    <td class="p-4 text-sm text-slate-300">{{ k.rute }}</td>
-                    <td class="p-4">
-                        <div class="text-sm text-slate-300">{{ k.flight }}</div>
-                        <div class="text-xs text-slate-500">{{ k.kelas }}</div>
+                    <td class="px-6 py-4">
+                        <div class="text-white maskapai-cell">{% firstof klaim.nama_maskapai klaim.maskapai %}</div>
+                        <div class="text-xs text-slate-500">{% firstof klaim.nomor_penerbangan klaim.flight_number %}</div>
                     </td>
-                    <td class="p-4 text-xs text-slate-500">{{ k.tanggal_pengajuan }}</td>
-                    <td class="p-4">
-                        {% if k.status == 'Disetujui' %}
-                        <span class="px-2 py-1 rounded text-[10px] font-bold bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 uppercase">Disetujui</span>
-                        {% elif k.status == 'Menunggu' %}
-                        <span class="px-2 py-1 rounded text-[10px] font-bold bg-amber-500/10 text-amber-500 border border-amber-500/20 uppercase">Menunggu</span>
-                        {% else %}
-                        <span class="px-2 py-1 rounded text-[10px] font-bold bg-rose-500/10 text-rose-500 border border-rose-500/20 uppercase">Ditolak</span>
-                        {% endif %}
+                    <td class="px-6 py-4 text-white">
+                        <div class="flex items-center space-x-2">
+                            <span>{{ klaim.bandara_asal }}</span>
+                            <i class="fa-solid fa-arrow-right text-[10px] text-slate-600"></i>
+                            <span>{{ klaim.bandara_tujuan }}</span>
+                        </div>
                     </td>
-                    <td class="p-4 text-center">
-                        {% if k.status == 'Menunggu' %}
-                        <div class="flex space-x-3">
-                            <button type="button" onclick="openModal('setuju', 'CLM-00{{ k.id }}', '{{ k.nama_member|escapejs }}', '{{ k.rute|escapejs }}', '{{ k.kelas|escapejs }}', '{% url 'setujui_klaim' k.id %}')" class="text-emerald-500 hover:text-emerald-400 transition-colors">
-                                <i class="fa-regular fa-circle-check text-xl"></i>
-                            </button>
-                            <button type="button" onclick="openModal('tolak', 'CLM-00{{ k.id }}', '{{ k.nama_member|escapejs }}', '{{ k.rute|escapejs }}', '{{ k.kelas|escapejs }}', '{% url 'tolak_klaim' k.id %}')" class="text-rose-500 hover:text-rose-400 transition-colors">
-                                <i class="fa-regular fa-circle-xmark text-xl"></i>
-                            </button>
+                    <td class="px-6 py-4 text-slate-300 tanggal-cell">{{ klaim.tanggal_penerbangan|date:"Y-m-d" }}</td>
+                    <td class="px-6 py-4">
+                        <div class="font-mono text-xs text-slate-400">{{ klaim.nomor_tiket }}</div>
+                        <div class="font-mono text-[10px] text-electric uppercase">{% firstof klaim.kode_pnr klaim.pnr %}</div>
+                    </td>
+                    <td class="px-6 py-4">
+                        <span class="status-badge px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider border
+                            {% if klaim.status_penerimaan == 'Disetujui' %}bg-emerald-500/10 text-emerald-400 border-emerald-500/20
+                            {% elif klaim.status_penerimaan == 'Ditolak' %}bg-rose-500/10 text-rose-400 border-rose-500/20
+                            {% else %}bg-amber-500/10 text-amber-400 border-amber-500/20{% endif %}">
+                            {{ klaim.status_penerimaan }}
+                        </span>
+                    </td>
+                    <td class="px-6 py-4 text-right">
+                        {% if klaim.status_penerimaan == 'Menunggu' %}
+                        <div class="flex justify-end space-x-2">
+                            <button onclick="openActionModal('{{ klaim.id }}', '{{ klaim.email_member }}', '{{ klaim.bandara_asal }} - {{ klaim.bandara_tujuan }}', '{% firstof klaim.kelas klaim.kelas_kabin %}', true)" class="px-3 py-1.5 text-xs font-bold text-emerald-400 hover:bg-emerald-500/10 rounded-lg transition-all border border-emerald-500/20">Setujui</button>
+                            <button onclick="openActionModal('{{ klaim.id }}', '{{ klaim.email_member }}', '{{ klaim.bandara_asal }} - {{ klaim.bandara_tujuan }}', '{% firstof klaim.kelas klaim.kelas_kabin %}', false)" class="px-3 py-1.5 text-xs font-bold text-rose-400 hover:bg-rose-500/10 rounded-lg transition-all border border-rose-500/20">Tolak</button>
                         </div>
                         {% else %}
-                        <i class="fa-solid fa-circle-check text-slate-700"></i>
+                        <span class="text-slate-600 text-xs italic">Sudah diproses</span>
                         {% endif %}
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="7" class="px-6 py-12 text-center">
+                        <div class="text-slate-500 italic">Tidak ada pengajuan klaim yang ditemukan.</div>
                     </td>
                 </tr>
                 {% endfor %}
@@ -90,90 +97,73 @@
     </div>
 </div>
 
-<div id="modalOverlay" class="fixed inset-0 bg-black/80 backdrop-blur-sm hidden items-center justify-center z-50">
-    <div class="bg-white rounded-xl shadow-2xl w-full max-w-md overflow-hidden transform transition-all scale-95 opacity-0" id="modalContent">
-        <div class="p-6 pb-2 flex justify-between items-start">
-            <div>
-                <h3 id="modalTitle" class="text-xl font-bold text-slate-900">Judul Modal</h3>
-                <p id="modalSub" class="text-sm text-slate-500 mt-1">Subdeskripsi modal disini.</p>
-            </div>
-            <button onclick="closeModal()" class="text-slate-400 hover:text-slate-600">
-                <i class="fa-solid fa-xmark text-lg"></i>
-            </button>
-        </div>
+<div id="actionModalOverlay" class="fixed inset-0 z-50 hidden bg-black/60 backdrop-blur-sm items-center justify-center p-4 transition-all duration-300">
+    <div id="actionModalContent" class="bg-[#000B1B] border border-white/10 w-full max-w-md rounded-2xl shadow-2xl overflow-hidden transform scale-95 opacity-0 transition-all duration-300">
+        <form id="modalActionForm" method="POST">
+            {% csrf_token %}
+            <div class="p-6">
+                <div class="flex justify-between items-start mb-6">
+                    <div>
+                        <h3 class="text-xl font-bold text-white"><span id="actionTitle">Proses</span> Klaim</h3>
+                        <p class="text-slate-400 text-xs mt-1">Konfirmasi pemrosesan data missing miles.</p>
+                    </div>
+                    <button type="button" onclick="closeModal()" class="text-slate-500 hover:text-white transition-colors"><i class="fa-solid fa-xmark"></i></button>
+                </div>
 
-        <div class="p-6 pt-2 space-y-3 text-sm border-b border-slate-100">
-            <div class="flex">
-                <span class="w-24 text-slate-500">Klaim:</span>
-                <span id="txtId" class="font-bold text-slate-900"></span>
-            </div>
-            <div class="flex">
-                <span class="w-24 text-slate-500">Member:</span>
-                <span id="txtMember" class="font-bold text-slate-900"></span>
-            </div>
-            <div class="flex">
-                <span class="w-24 text-slate-500">Rute:</span>
-                <span id="txtRute" class="font-bold text-slate-900"></span>
-            </div>
-            <div class="flex">
-                <span class="w-24 text-slate-500">Kelas:</span>
-                <span id="txtKelas" class="font-bold text-slate-900"></span>
-            </div>
-        </div>
+                <div class="space-y-4 bg-white/5 p-4 rounded-xl border border-white/5 mb-6">
+                    <div class="flex justify-between">
+                        <span class="text-xs text-slate-500 uppercase font-bold">ID Klaim</span>
+                        <span id="txtId" class="text-xs text-white font-mono"></span>
+                    </div>
+                    <div class="flex justify-between border-t border-white/5 pt-3">
+                        <span class="text-xs text-slate-500 uppercase font-bold">Member</span>
+                        <span id="txtMember" class="text-xs text-white"></span>
+                    </div>
+                    <div class="flex justify-between border-t border-white/5 pt-3">
+                        <span class="text-xs text-slate-500 uppercase font-bold">Rute</span>
+                        <span id="txtRute" class="text-xs text-white"></span>
+                    </div>
+                    <div class="flex justify-between border-t border-white/5 pt-3">
+                        <span class="text-xs text-slate-500 uppercase font-bold">Kelas</span>
+                        <span id="txtKelas" class="text-xs text-white"></span>
+                    </div>
+                </div>
 
-        <!-- Footer -->
-        <div class="p-4 bg-slate-50 flex justify-end space-x-3">
-            <button type="button" onclick="closeModal()" class="px-5 py-2 text-sm font-bold text-slate-600 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 transition-colors">Batal</button>
-            <form id="modalActionForm" method="POST">
-                {% csrf_token %}
-                <button type="submit" id="btnAction" class="px-5 py-2 text-sm font-bold text-white rounded-lg transition-all shadow-lg shadow-blue-500/20">Aksi</button>
-            </form>
-        </div>
+                <p id="actionDescription" class="text-sm text-slate-400 mb-8 leading-relaxed"></p>
+
+                <div class="flex justify-end space-x-3">
+                    <button type="button" onclick="closeModal()" class="px-5 py-2 text-sm font-bold text-slate-400 hover:text-white transition-colors">Batal</button>
+                    <button type="submit" id="btnAction" class="px-5 py-2 text-sm font-bold text-white rounded-lg transition-all shadow-lg"></button>
+                </div>
+            </div>
+        </form>
     </div>
 </div>
 
 <script>
-    function filterTable() {
-        const sVal = document.getElementById('filterStatus').value;
-        const mVal = document.getElementById('filterMaskapai').value;
-        const tVal = document.getElementById('filterTanggal').value;
-        document.querySelectorAll('.claim-row').forEach(row => {
-            const matchS = sVal === "" || row.dataset.status === sVal;
-            const matchM = mVal === "" || row.dataset.maskapai === mVal;
-            const matchT = tVal === "" || row.dataset.tanggal === tVal;
-            row.style.display = (matchS && matchM && matchT) ? "" : "none";
-        });
-    }
+    const overlay = document.getElementById('actionModalOverlay');
+    const content = document.getElementById('actionModalContent');
 
-    function resetFilters() {
-        document.getElementById('filterStatus').value = "";
-        document.getElementById('filterMaskapai').value = "";
-        document.getElementById('filterTanggal').value = "";
-        filterTable();
-    }
-
-    const overlay = document.getElementById('modalOverlay');
-    const content = document.getElementById('modalContent');
-
-    function openModal(type, id, member, rute, kelas, actionUrl) {
-        const isSetuju = type === 'setuju';
+    function openActionModal(id, member, rute, kelas, isSetuju) {
+        const actionTitle = isSetuju ? 'Setujui' : 'Tolak';
+        const actionUrl = isSetuju ? `/staf/klaim/setujui/${id}/` : `/staf/klaim/tolak/${id}/`;
         
-        document.getElementById('modalTitle').innerText = isSetuju ? 'Setujui Klaim' : 'Tolak Klaim';
-        document.getElementById('modalSub').innerText = isSetuju 
-            ? 'Miles akan ditambahkan ke akun member sesuai rute dan kelas kabin.' 
-            : 'Klaim akan ditolak dan member akan diinformasikan.';
+        document.getElementById('actionTitle').innerText = actionTitle;
+        document.getElementById('actionDescription').innerText = isSetuju 
+            ? 'Dengan menyetujui, jumlah miles dari penerbangan ini akan otomatis ditambahkan ke akun member sesuai rute.' 
+            : 'Klaim akan ditolak dan member akan diinformasikan bahwa data tidak valid atau tidak ditemukan.';
         
-        document.getElementById('txtId').innerText = id;
+        document.getElementById('txtId').innerText = "#" + id;
         document.getElementById('txtMember').innerText = member;
         document.getElementById('txtRute').innerText = rute;
         document.getElementById('txtKelas').innerText = kelas;
         document.getElementById('modalActionForm').action = actionUrl;
 
         const btn = document.getElementById('btnAction');
-        btn.innerText = isSetuju ? 'Setujui' : 'Tolak';
+        btn.innerText = actionTitle;
         btn.className = isSetuju 
-            ? 'px-5 py-2 text-sm font-bold text-white bg-blue-900 hover:bg-blue-800 rounded-lg' 
-            : 'px-5 py-2 text-sm font-bold text-white bg-rose-600 hover:bg-rose-500 rounded-lg';
+            ? 'px-5 py-2 text-sm font-bold text-white bg-emerald-600 hover:bg-emerald-500 rounded-lg shadow-emerald-500/20' 
+            : 'px-5 py-2 text-sm font-bold text-white bg-rose-600 hover:bg-rose-500 rounded-lg shadow-rose-500/20';
 
         overlay.classList.remove('hidden');
         overlay.classList.add('flex');
@@ -189,11 +179,41 @@
         setTimeout(() => {
             overlay.classList.remove('flex');
             overlay.classList.add('hidden');
-        }, 200);
+        }, 300);
     }
 
-    overlay.addEventListener('click', (e) => {
-        if(e.target === overlay) closeModal();
-    });
+    function filterTable() {
+        const status = document.getElementById('filterStatus').value.toUpperCase();
+        const maskapai = document.getElementById('filterMaskapai').value.toLowerCase();
+        const tanggal = document.getElementById('filterTanggal').value;
+        const email = document.getElementById('filterEmail').value.toLowerCase();
+        
+        const rows = document.querySelector('#claimTable tbody').rows;
+
+        for (let i = 0; i < rows.length; i++) {
+            const statusBadge = rows[i].querySelector('.status-badge');
+            const maskapaiCell = rows[i].querySelector('.maskapai-cell');
+            const tanggalCell = rows[i].querySelector('.tanggal-cell');
+            const emailCell = rows[i].querySelector('.email-cell');
+            if (!statusBadge || !maskapaiCell || !tanggalCell || !emailCell) continue;
+
+            const rowStatus = statusBadge.innerText.trim().toUpperCase();
+            const rowMaskapai = maskapaiCell.innerText.toLowerCase();
+            const rowTanggal = tanggalCell.innerText.trim();
+            const rowEmail = emailCell.innerText.toLowerCase();
+            const maskapaiOptions = maskapai ? maskapai.split('|') : [];
+
+            const matchStatus = status === "" || rowStatus === status;
+            const matchMaskapai = maskapai === "" || maskapaiOptions.some(option => rowMaskapai.includes(option));
+            const matchTanggal = tanggal === "" || rowTanggal === tanggal;
+            const matchEmail = email === "" || rowEmail.includes(email);
+
+            if (matchStatus && matchMaskapai && matchTanggal && matchEmail) {
+                rows[i].style.display = "";
+            } else {
+                rows[i].style.display = "none";
+            }
+        }
+    }
 </script>
 {% endblock %}
