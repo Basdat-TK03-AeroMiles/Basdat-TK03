@@ -313,6 +313,7 @@ def daftar_hadiah(request):
 
 def tambah_hadiah(request):
     if request.method == 'POST':
+        kode = request.POST.get('kode_hadiah')
         nama = request.POST.get('nama')
         id_penyedia = request.POST.get('id_penyedia')
         miles = request.POST.get('miles')
@@ -321,17 +322,12 @@ def tambah_hadiah(request):
         end_date = request.POST.get('program_end')
         
         query = """
-            INSERT INTO HADIAH (nama, id_penyedia, miles, deskripsi, valid_start_date, program_end)
-            VALUES (%s, %s, %s, %s, %s, %s)
-            RETURNING kode_hadiah
+            INSERT INTO HADIAH (kode_hadiah, nama, id_penyedia, miles, deskripsi, valid_start_date, program_end)
+            VALUES (%s, %s, %s, %s, %s, %s, %s)
         """
         try:
-            result = execute_query(query, [nama, id_penyedia, miles, deskripsi, start_date, end_date], fetch=True)
-            kode_hadiah = result[0]['kode_hadiah'] if result else None
-            if kode_hadiah:
-                messages.success(request, f'Hadiah berhasil ditambahkan dengan kode {kode_hadiah}.')
-            else:
-                messages.success(request, 'Hadiah berhasil ditambahkan.')
+            execute_query(query, [kode, nama, id_penyedia, miles, deskripsi, start_date, end_date])
+            messages.success(request, 'Hadiah berhasil ditambahkan.')
         except Exception as e:
             messages.error(request, f'{e}')
             
@@ -409,31 +405,10 @@ def manajemen_member_view(request):
         }
     ]
 
-    search_query = request.GET.get('q', '').strip()
-    filter_tier = request.GET.get('tier', '').strip()
-
-    filtered_members = dummy_members
-    if search_query:
-        search_lower = search_query.lower()
-        filtered_members = [
-            member for member in filtered_members
-            if search_lower in member['nomor_member'].lower()
-            or search_lower in member['email'].lower()
-            or search_lower in f"{member['salutation']} {member['nama_depan']} {member['nama_tengah']} {member['nama_belakang']}".lower()
-        ]
-
-    if filter_tier:
-        filtered_members = [
-            member for member in filtered_members
-            if member['tier'].lower() == filter_tier.lower()
-        ]
-
     context = {
         'role': role,
         'name': name,
-        'member_list': filtered_members,
-        'search_query': search_query,
-        'filter_tier': filter_tier,
+        'member_list': dummy_members
     }
     return render(request, 'manajemen_member.html', context)
 
@@ -792,26 +767,12 @@ def laporan_transaksi_view(request):
 
     filter_jenis = request.GET.get('jenis', '')
     filter_email = request.GET.get('email', '')
-    filter_dari = request.GET.get('dari', '')
-    filter_sampai = request.GET.get('sampai', '')
 
     filtered = DUMMY_TRANSAKSI[:]
     if filter_jenis:
         filtered = [t for t in filtered if t['jenis'] == filter_jenis]
     if filter_email:
         filtered = [t for t in filtered if filter_email.lower() in t['email_member'].lower()]
-    if filter_dari:
-        try:
-            tanggal_dari = datetime.date.fromisoformat(filter_dari)
-            filtered = [t for t in filtered if t['timestamp'].date() >= tanggal_dari]
-        except ValueError:
-            pass
-    if filter_sampai:
-        try:
-            tanggal_sampai = datetime.date.fromisoformat(filter_sampai)
-            filtered = [t for t in filtered if t['timestamp'].date() <= tanggal_sampai]
-        except ValueError:
-            pass
 
     return render(request, 'laporan_transaksi.html', {
         'transaksi_list': filtered,
@@ -831,8 +792,8 @@ def laporan_transaksi_view(request):
         ],
         'filter_jenis': filter_jenis,
         'filter_email': filter_email,
-        'filter_dari': filter_dari,
-        'filter_sampai': filter_sampai,
+        'filter_dari': request.GET.get('dari', ''),
+        'filter_sampai': request.GET.get('sampai', ''),
     })
 
 

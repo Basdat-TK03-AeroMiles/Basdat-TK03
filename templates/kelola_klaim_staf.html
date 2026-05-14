@@ -72,10 +72,10 @@
                     <td class="p-4 text-center">
                         {% if k.status == 'Menunggu' %}
                         <div class="flex space-x-3">
-                            <button type="button" onclick="openModal('setuju', 'CLM-00{{ k.id }}', '{{ k.nama_member|escapejs }}', '{{ k.rute|escapejs }}', '{{ k.kelas|escapejs }}', '{% url 'setujui_klaim' k.id %}')" class="text-emerald-500 hover:text-emerald-400 transition-colors">
+                            <button onclick="openModal('setuju', 'CLM-00{{ k.id }}', '{{ k.nama_member }}', '{{ k.rute }}', '{{ k.kelas }}')" class="text-emerald-500 hover:text-emerald-400 transition-colors">
                                 <i class="fa-regular fa-circle-check text-xl"></i>
                             </button>
-                            <button type="button" onclick="openModal('tolak', 'CLM-00{{ k.id }}', '{{ k.nama_member|escapejs }}', '{{ k.rute|escapejs }}', '{{ k.kelas|escapejs }}', '{% url 'tolak_klaim' k.id %}')" class="text-rose-500 hover:text-rose-400 transition-colors">
+                            <button onclick="openModal('tolak', 'CLM-00{{ k.id }}', '{{ k.nama_member }}', '{{ k.rute }}', '{{ k.kelas }}')" class="text-rose-500 hover:text-rose-400 transition-colors">
                                 <i class="fa-regular fa-circle-xmark text-xl"></i>
                             </button>
                         </div>
@@ -123,11 +123,8 @@
 
         <!-- Footer -->
         <div class="p-4 bg-slate-50 flex justify-end space-x-3">
-            <button type="button" onclick="closeModal()" class="px-5 py-2 text-sm font-bold text-slate-600 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 transition-colors">Batal</button>
-            <form id="modalActionForm" method="POST">
-                {% csrf_token %}
-                <button type="submit" id="btnAction" class="px-5 py-2 text-sm font-bold text-white rounded-lg transition-all shadow-lg shadow-blue-500/20">Aksi</button>
-            </form>
+            <button onclick="closeModal()" class="px-5 py-2 text-sm font-bold text-slate-600 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 transition-colors">Batal</button>
+            <button id="btnAction" class="px-5 py-2 text-sm font-bold text-white rounded-lg transition-all shadow-lg shadow-blue-500/20">Aksi</button>
         </div>
     </div>
 </div>
@@ -155,7 +152,7 @@
     const overlay = document.getElementById('modalOverlay');
     const content = document.getElementById('modalContent');
 
-    function openModal(type, id, member, rute, kelas, actionUrl) {
+    function openModal(type, id, member, rute, kelas) {
         const isSetuju = type === 'setuju';
         
         document.getElementById('modalTitle').innerText = isSetuju ? 'Setujui Klaim' : 'Tolak Klaim';
@@ -167,7 +164,6 @@
         document.getElementById('txtMember').innerText = member;
         document.getElementById('txtRute').innerText = rute;
         document.getElementById('txtKelas').innerText = kelas;
-        document.getElementById('modalActionForm').action = actionUrl;
 
         const btn = document.getElementById('btnAction');
         btn.innerText = isSetuju ? 'Setujui' : 'Tolak';

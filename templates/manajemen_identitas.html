@@ -127,11 +127,10 @@
         <form action="{% url 'manajemen_identitas' %}" method="POST" class="p-6 space-y-4">
             {% csrf_token %}
             <input type="hidden" name="old_no_dokumen" value="{{ identitas.no_dokumen }}">
-            <input type="hidden" name="no_dokumen" value="{{ identitas.no_dokumen }}">
             
             <div>
                 <label class="block text-[11px] font-bold text-slate-400 mb-2">Nomor Dokumen</label>
-                <input type="text" value="{{ identitas.no_dokumen }}" disabled class="w-full px-4 py-2.5 bg-white/5 border border-white/10 rounded-xl text-sm text-slate-500 cursor-not-allowed">
+                <input type="text" name="no_dokumen" value="{{ identitas.no_dokumen }}" required class="w-full px-4 py-2.5 bg-white/5 border border-white/10 rounded-xl text-sm text-white focus:ring-2 focus:ring-[#112a46] outline-none transition-all">
             </div>
             <div>
                 <label class="block text-[11px] font-bold text-slate-400 mb-2">Jenis Dokumen</label>
