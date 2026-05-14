@@ -4,6 +4,14 @@
 <div class="p-8 max-w-[1400px] mx-auto">
     {% include 'components/page_header.html' with title="Transfer Miles" %}
 
+    {% if messages %}
+        {% for message in messages %}
+            <div class="mb-6 p-4 rounded-xl {% if message.tags == 'success' %}bg-emerald-500/10 border border-emerald-500/20 text-emerald-400{% else %}bg-rose-500/10 border border-rose-500/20 text-rose-400{% endif %} text-sm">
+                {{ message }}
+            </div>
+        {% endfor %}
+    {% endif %}
+
     <div class="flex items-center justify-between mb-6">
         <div class="bg-white/5 border border-white/10 rounded-xl px-5 py-3">
             <span class="text-xs text-slate-500 uppercase tracking-widest">Award Miles Tersedia</span>

@@ -787,7 +787,14 @@ def kelola_klaim_staf(request):
         ORDER BY CASE WHEN status_penerimaan = 'Menunggu' THEN 1 ELSE 2 END, tanggal_penerbangan DESC
     """
     klaim_staf_list = execute_query(query, fetch=True)
-    return render(request, 'kelola_klaim_staf.html', {'klaim_staf_list': klaim_staf_list})
+    maskapai_choices = execute_query(
+        "SELECT kode_maskapai, nama_maskapai FROM maskapai ORDER BY nama_maskapai",
+        fetch=True
+    )
+    return render(request, 'kelola_klaim_staf.html', {
+        'klaim_staf_list': klaim_staf_list,
+        'maskapai_choices': maskapai_choices,
+    })
 
 def setujui_klaim(request, pk):
     email_staf = request.session.get('email')
@@ -803,7 +810,6 @@ def setujui_klaim(request, pk):
             messages.error(request, "Klaim tidak ditemukan atau sudah diproses.")
             return redirect('kelola_klaim_staf')
         email_member = updated[0]['email_member']
-        execute_query("UPDATE member SET award_miles = award_miles + 500 WHERE email = %s", [email_member])
         messages.success(request, f"Klaim #{pk} disetujui.")
     except Exception:
         messages.error(request, "Gagal memproses persetujuan.")
