@@ -895,7 +895,7 @@ def ajukan_klaim(request):
             ])
             messages.success(request, "Klaim berhasil diajukan!")
         except Exception as e:
-            messages.error(request, f"Gagal mengajukan klaim: {e}")
+            messages.error(request, format_db_error(e))
             
     return redirect('klaim_miles')
 
@@ -998,14 +998,21 @@ def setujui_klaim(request, pk):
             WHERE id = %s AND status_penerimaan = 'Menunggu'
             RETURNING email_member
         """
-        updated = execute_query(query_update, [email_staf, pk], fetch=True)
+        updated, notices = execute_query(query_update, [email_staf, pk], fetch=True, return_notices=True)
         if not updated:
             messages.error(request, "Klaim tidak ditemukan atau sudah diproses.")
             return redirect('kelola_klaim_staf')
-        email_member = updated[0]['email_member']
-        messages.success(request, f"Klaim #{pk} disetujui.")
-    except Exception:
-        messages.error(request, "Gagal memproses persetujuan.")
+
+        success_notices = [
+            notice.replace('NOTICE:  ', '').replace('NOTICE:', '').strip()
+            for notice in notices
+            if 'SUKSES:' in notice
+        ]
+        if success_notices:
+            for notice in success_notices:
+                messages.success(request, notice)
+    except Exception as e:
+        messages.error(request, format_db_error(e))
     return redirect('kelola_klaim_staf')
 
 def tolak_klaim(request, pk):
@@ -1078,23 +1085,20 @@ def proses_transfer(request):
                 messages.error(request, "Tidak dapat transfer ke diri sendiri.")
                 return redirect('transfer_miles')
 
-            res_saldo = execute_query("SELECT award_miles FROM member WHERE email = %s", [email_pengirim], fetch=True)
-            if not res_saldo or res_saldo[0]['award_miles'] < jumlah_miles:
-                messages.error(request, "Saldo Award Miles tidak mencukupi.")
-                return redirect('transfer_miles')
-            
-            execute_query("UPDATE member SET award_miles = award_miles - %s WHERE email = %s", [jumlah_miles, email_pengirim])
-            execute_query("UPDATE member SET award_miles = award_miles + %s WHERE email = %s", [jumlah_miles, email_penerima])
-            
-            query_insert = """
-                INSERT INTO transfer (email_member_1, email_member_2, timestamp, jumlah, catatan) 
-                VALUES (%s, %s, NOW(), %s, %s)
-            """
-            execute_query(query_insert, [email_pengirim, email_penerima, jumlah_miles, catatan])
-            
-            messages.success(request, f"Berhasil transfer {jumlah_miles} miles.")
+            result, notices = execute_query(
+                "SELECT sp_transfer_miles(%s, %s, %s, %s) AS message",
+                [email_pengirim, email_penerima, jumlah_miles, catatan],
+                fetch=True,
+                return_notices=True
+            )
+
+            if result:
+                messages.success(request, result[0]['message'])
+            for notice in notices:
+                if 'SUKSES:' in notice:
+                    messages.success(request, notice.replace('NOTICE:  ', '').replace('NOTICE:', '').strip())
         except Exception as e:
-            messages.error(request, f"Gagal: {e}")
+            messages.error(request, format_db_error(e))
             
     return redirect('transfer_miles')
 
