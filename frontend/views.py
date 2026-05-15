@@ -2,6 +2,7 @@ from django.shortcuts import render, redirect
 from django.contrib import messages
 import datetime
 import psycopg2
+import hashlib
 from psycopg2.extras import RealDictCursor
 
 COUNTRY_NAME_TO_CODE = {
@@ -84,8 +85,10 @@ def login_view(request):
         password = request.POST.get('password')
         
         try:
+            hashed_password = hashlib.sha256(password.encode()).hexdigest() if password else ''
+            
             query_user = "SELECT * FROM verify_login(%s, %s)"
-            user_data = execute_query(query_user, [email, password], fetch=True)
+            user_data = execute_query(query_user, [email, hashed_password], fetch=True)
             
             if user_data:
                 user = user_data[0]
@@ -131,7 +134,10 @@ def register_view(request):
         tanggal_lahir = request.POST.get('tanggal_lahir')
         kewarganegaraan = request.POST.get('kewarganegaraan')
         
+        import hashlib
         try:
+            hashed_password = hashlib.sha256(password.encode()).hexdigest() if password else ''
+            
             if role == 'member':
                 query_reg = """
                     WITH new_user AS (
@@ -142,7 +148,7 @@ def register_view(request):
                     INSERT INTO member (email, tanggal_bergabung, id_tier, award_miles, total_miles) 
                     VALUES ((SELECT email FROM new_user), CURRENT_DATE, 'T01', 0, 0)
                 """
-                params = [email, password, salutation, first_mid_name, last_name, country_code, mobile_number, tanggal_lahir, kewarganegaraan]
+                params = [email, hashed_password, salutation, first_mid_name, last_name, country_code, mobile_number, tanggal_lahir, kewarganegaraan]
                 execute_query(query_reg, params)
                 
             elif role == 'staf':
@@ -156,7 +162,7 @@ def register_view(request):
                     INSERT INTO staf (email, kode_maskapai) 
                     VALUES ((SELECT email FROM new_user), %s)
                 """
-                params = [email, password, salutation, first_mid_name, last_name, country_code, mobile_number, tanggal_lahir, kewarganegaraan, kode_maskapai]
+                params = [email, hashed_password, salutation, first_mid_name, last_name, country_code, mobile_number, tanggal_lahir, kewarganegaraan, kode_maskapai]
                 execute_query(query_reg, params)
                 
             messages.success(request, f'Registrasi berhasil untuk {email} sebagai {role.title()}. Silakan login.')
