@@ -22,18 +22,22 @@ def get_db_connection():
         options="-c search_path=aeromiles"
     )
 
-def execute_query(query, params=None, fetch=False):
+def execute_query(query, params=None, fetch=False, return_notices=False):
     conn = get_db_connection()
-    cursor = conn.cursor(cursor_factory=RealDictCursor) 
-    
+    cursor = conn.cursor(cursor_factory=RealDictCursor)
     try:
         cursor.execute(query, params)
+        notices = [n.strip() for n in conn.notices] if conn.notices else []
         if fetch:
             result = cursor.fetchall()
             conn.commit()
+            if return_notices:
+                return result, notices
             return result
         else:
             conn.commit()
+            if return_notices:
+                return None, notices
             return None
     except Exception as e:
         conn.rollback()
@@ -1106,29 +1110,19 @@ def redeem_hadiah_view(request):
 
     if request.method == 'POST':
         kode_hadiah = request.POST.get('kode_hadiah')
-        hadiah_query = "SELECT miles, valid_start_date, program_end, nama FROM hadiah WHERE kode_hadiah = %s"
-        hadiah = execute_query(hadiah_query, [kode_hadiah], fetch=True)
-        
-        if not hadiah:
-            messages.error(request, 'Hadiah tidak ditemukan.')
-        else:
-            hadiah = hadiah[0]
-            today = datetime.date.today()
-            if today < hadiah['valid_start_date'] or today > hadiah['program_end']:
-                messages.error(request, f'ERROR: Hadiah "{hadiah["nama"]}" tidak tersedia pada periode ini.')
-            else:
-                member_res = execute_query("SELECT award_miles FROM member WHERE email = %s", [email_member], fetch=True)
-                award_miles = member_res[0]['award_miles'] if member_res else 0
-                
-                if award_miles < hadiah['miles']:
-                    messages.error(request, f'ERROR: Saldo award miles tidak mencukupi. Dibutuhkan {hadiah["miles"]} miles, saldo Anda: {award_miles}.')
-                else:
-                    try:
-                        execute_query("UPDATE member SET award_miles = award_miles - %s WHERE email = %s", [hadiah['miles'], email_member])
-                        execute_query("INSERT INTO redeem (email_member, kode_hadiah, timestamp) VALUES (%s, %s, NOW())", [email_member, kode_hadiah])
-                        messages.success(request, f'SUKSES: Redeem hadiah "{hadiah["nama"]}" berhasil. Award miles Anda berkurang {hadiah["miles"]} miles.')
-                    except Exception as e:
-                        messages.error(request, format_db_error(e))
+        try:
+            _, notices = execute_query(
+                "INSERT INTO redeem (email_member, kode_hadiah, timestamp) VALUES (%s, %s, NOW())", 
+                [email_member, kode_hadiah], 
+                return_notices=True
+            )
+            # The success message is returned as a NOTICE from the Trigger.
+            for notice in notices:
+                if 'SUKSES:' in notice:
+                    messages.success(request, notice.replace('NOTICE:  ', '').replace('NOTICE:', '').strip())
+        except Exception as e:
+            # The Trigger will throw an exception if validation fails (e.g. not enough miles, inactive)
+            messages.error(request, format_db_error(e))
         return redirect('redeem_hadiah')
 
     katalog_query = """
@@ -1168,17 +1162,17 @@ def beli_paket_view(request):
 
     if request.method == 'POST':
         id_paket = request.POST.get('id_paket')
-        paket_res = execute_query("SELECT jumlah_award_miles FROM award_miles_package WHERE id = %s", [id_paket], fetch=True)
-        if not paket_res:
-            messages.error(request, 'Paket tidak ditemukan.')
-        else:
-            paket = paket_res[0]
-            try:
-                execute_query("UPDATE member SET award_miles = award_miles + %s, total_miles = total_miles + %s WHERE email = %s", [paket['jumlah_award_miles'], paket['jumlah_award_miles'], email_member])
-                execute_query("INSERT INTO member_award_miles_package (email_member, id_award_miles_package, timestamp) VALUES (%s, %s, NOW())", [email_member, id_paket])
-                messages.success(request, f'SUKSES: Pembelian package berhasil. Award miles dan total miles Anda bertambah {paket["jumlah_award_miles"]} miles.')
-            except Exception as e:
-                messages.error(request, format_db_error(e))
+        try:
+            _, notices = execute_query(
+                "INSERT INTO member_award_miles_package (email_member, id_award_miles_package, timestamp) VALUES (%s, %s, NOW())", 
+                [email_member, id_paket], 
+                return_notices=True
+            )
+            for notice in notices:
+                if 'SUKSES:' in notice:
+                    messages.success(request, notice.replace('NOTICE:  ', '').replace('NOTICE:', '').strip())
+        except Exception as e:
+            messages.error(request, format_db_error(e))
         return redirect('beli_paket')
 
     paket_list = execute_query("SELECT id, jumlah_award_miles, harga_paket FROM award_miles_package ORDER BY harga_paket ASC", fetch=True)
@@ -1298,11 +1292,18 @@ def laporan_transaksi_view(request):
         'klaim_disetujui': (execute_query("SELECT COUNT(*) AS v FROM claim_missing_miles WHERE status_penerimaan = 'Disetujui'", fetch=True)[0]['v']),
     }
 
-    top_miles = execute_query("""
-        SELECT CONCAT(p.first_mid_name, ' ', p.last_name) AS nama, m.email, m.total_miles
-        FROM member m JOIN pengguna p ON m.email = p.email
-        ORDER BY m.total_miles DESC LIMIT 5
-    """, fetch=True)
+    try:
+        top_miles, notices = execute_query("SELECT * FROM get_top_5_member()", fetch=True, return_notices=True)
+        for notice in notices:
+            if 'SUKSES:' in notice:
+                messages.success(request, notice.replace('NOTICE:  ', '').replace('NOTICE:', '').strip())
+    except Exception as e:
+        print(f"Stored procedure get_top_5_member() gagal: {e}")
+        top_miles = execute_query("""
+            SELECT CONCAT(p.first_mid_name, ' ', p.last_name) AS nama, m.email, m.total_miles
+            FROM member m JOIN pengguna p ON m.email = p.email
+            ORDER BY m.total_miles DESC LIMIT 5
+        """, fetch=True)
 
     top_redeem = execute_query("""
         SELECT CONCAT(p.first_mid_name, ' ', p.last_name) AS nama, r.email_member AS email, COUNT(*) AS jumlah
