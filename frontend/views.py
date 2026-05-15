@@ -1126,19 +1126,19 @@ def redeem_hadiah_view(request):
                 [email_member, kode_hadiah], 
                 return_notices=True
             )
-            # The success message is returned as a NOTICE from the Trigger.
             for notice in notices:
                 if 'SUKSES:' in notice:
                     messages.success(request, notice.replace('NOTICE:  ', '').replace('NOTICE:', '').strip())
         except Exception as e:
-            # The Trigger will throw an exception if validation fails (e.g. not enough miles, inactive)
             messages.error(request, format_db_error(e))
         return redirect('redeem_hadiah')
 
     katalog_query = """
-        SELECT h.kode_hadiah, h.nama, h.miles, h.deskripsi, h.valid_start_date, h.program_end, p.nama_penyedia
+        SELECT h.kode_hadiah, h.nama, h.miles, h.deskripsi, h.valid_start_date, h.program_end,
+               COALESCE(m.nama_mitra, 'Penyedia #' || h.id_penyedia::text) AS nama_penyedia
         FROM hadiah h
-        JOIN penyedia p ON h.id_penyedia = p.id
+        LEFT JOIN penyedia p ON h.id_penyedia = p.id
+        LEFT JOIN mitra m ON p.id = m.id_penyedia
         WHERE h.program_end >= CURRENT_DATE
         ORDER BY h.valid_start_date DESC
     """
