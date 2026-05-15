@@ -1292,11 +1292,18 @@ def laporan_transaksi_view(request):
         'klaim_disetujui': (execute_query("SELECT COUNT(*) AS v FROM claim_missing_miles WHERE status_penerimaan = 'Disetujui'", fetch=True)[0]['v']),
     }
 
-    top_miles = execute_query("""
-        SELECT CONCAT(p.first_mid_name, ' ', p.last_name) AS nama, m.email, m.total_miles
-        FROM member m JOIN pengguna p ON m.email = p.email
-        ORDER BY m.total_miles DESC LIMIT 5
-    """, fetch=True)
+    try:
+        top_miles, notices = execute_query("SELECT * FROM get_top_5_member()", fetch=True, return_notices=True)
+        for notice in notices:
+            if 'SUKSES:' in notice:
+                messages.success(request, notice.replace('NOTICE:  ', '').replace('NOTICE:', '').strip())
+    except Exception as e:
+        print(f"Stored procedure get_top_5_member() gagal: {e}")
+        top_miles = execute_query("""
+            SELECT CONCAT(p.first_mid_name, ' ', p.last_name) AS nama, m.email, m.total_miles
+            FROM member m JOIN pengguna p ON m.email = p.email
+            ORDER BY m.total_miles DESC LIMIT 5
+        """, fetch=True)
 
     top_redeem = execute_query("""
         SELECT CONCAT(p.first_mid_name, ' ', p.last_name) AS nama, r.email_member AS email, COUNT(*) AS jumlah
