@@ -1297,12 +1297,16 @@ def laporan_transaksi_view(request):
     }
 
     try:
-        top_miles, notices = execute_query("SELECT * FROM get_top_5_member()", fetch=True, return_notices=True)
+        top_miles, notices = execute_query("""
+            SELECT CONCAT(p.first_mid_name, ' ', p.last_name) AS nama, t.email, t.total_miles
+            FROM get_top_5_members() t
+            JOIN pengguna p ON t.email = p.email
+        """, fetch=True, return_notices=True)
         for notice in notices:
             if 'SUKSES:' in notice:
                 messages.success(request, notice.replace('NOTICE:  ', '').replace('NOTICE:', '').strip())
     except Exception as e:
-        print(f"Stored procedure get_top_5_member() gagal: {e}")
+        print(f"Stored procedure get_top_5_members() gagal: {e}")
         top_miles = execute_query("""
             SELECT CONCAT(p.first_mid_name, ' ', p.last_name) AS nama, m.email, m.total_miles
             FROM member m JOIN pengguna p ON m.email = p.email
