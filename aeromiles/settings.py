@@ -26,7 +26,7 @@ SECRET_KEY = 'django-insecure-9e-%9u6bwku&2zeibc)vlju56z*myzg0uk@u8*n+%kqi@i1t(l
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['basdat-tk-03-git-main-wildan-projects.vercel.app']
 
 
 # Application definition
