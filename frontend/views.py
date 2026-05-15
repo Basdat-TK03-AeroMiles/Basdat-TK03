@@ -278,12 +278,12 @@ def tambah_mitra(request):
         try:
             insert_query = """
                 WITH new_penyedia AS (
-                    INSERT INTO PENYEDIA (nama_penyedia) VALUES (%s) RETURNING id
+                    INSERT INTO PENYEDIA DEFAULT VALUES RETURNING id
                 )
                 INSERT INTO MITRA (email_mitra, id_penyedia, nama_mitra, tanggal_kerja_sama) 
                 VALUES (%s, (SELECT id FROM new_penyedia), %s, %s)
             """
-            execute_query(insert_query, [nama, email, nama, tanggal])
+            execute_query(insert_query, [email, nama, tanggal])
             messages.success(request, 'Mitra berhasil ditambahkan.')
         except Exception as e:
             messages.error(request, f'{e}')
@@ -321,14 +321,15 @@ def daftar_hadiah(request):
     
     query_hadiah = """
         SELECT h.kode_hadiah, h.nama, h.miles, h.deskripsi, h.valid_start_date, h.program_end, 
-               h.id_penyedia, p.nama_penyedia 
+               h.id_penyedia, COALESCE(m.nama_mitra, 'Penyedia #' || h.id_penyedia::text) AS nama_penyedia 
         FROM HADIAH h
-        JOIN PENYEDIA p ON h.id_penyedia = p.id
+        LEFT JOIN PENYEDIA p ON h.id_penyedia = p.id
+        LEFT JOIN MITRA m ON p.id = m.id_penyedia
         ORDER BY h.valid_start_date DESC
     """
     hadiah_list = execute_query(query_hadiah, fetch=True)
     
-    query_penyedia = "SELECT id, nama_penyedia FROM PENYEDIA"
+    query_penyedia = "SELECT p.id, COALESCE(m.nama_mitra, 'Penyedia #' || p.id::text) AS nama_penyedia FROM PENYEDIA p LEFT JOIN MITRA m ON p.id = m.id_penyedia"
     penyedia_list = execute_query(query_penyedia, fetch=True)
     
     return render(request, 'hadiah.html', {'hadiah_list': hadiah_list, 'penyedia_list': penyedia_list})
